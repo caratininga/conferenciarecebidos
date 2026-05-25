@@ -3,12 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acerto de Caixa - Colibri</title>
-    <!-- Tailwind CSS para o visual moderno -->
+    <title>Acerto de Caixa - Caratininga</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- SheetJS para ler Excel e CSV diretamente no navegador -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -16,112 +13,225 @@
         .file-input-wrapper input[type=file] {
             font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; height: 100%;
         }
-        /* Efeitos suaves */
         tbody tr:not(.group-header) { transition: background-color 0.2s; }
         .group-header td { border-top: 2px solid #e2e8f0; }
+        
+        /* Grid do Calendário Compacto para 4 colunas */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 2px;
+            text-align: center;
+        }
+        .day-box {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.375rem;
+            font-size: 0.75rem; /* Menor para caber bem */
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+        }
+        .day-box.empty { background-color: transparent; cursor: default; }
+        
+        /* Oculta scrollbar mas permite rolar nas tabelas caso tela pequena */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen p-4 md:p-8 text-slate-800">
+<body class="bg-slate-50 min-h-screen text-slate-800 relative">
 
-    <div class="max-w-7xl mx-auto">
-        
-        <!-- Cabeçalho -->
-        <header class="mb-8 text-center md:text-left flex flex-col md:flex-row items-center justify-between">
-            <div>
-                <h1 class="text-3xl font-bold text-slate-900 flex items-center gap-2 justify-center md:justify-start">
-                    <i data-lucide="calculator" class="text-blue-600"></i>
-                    Conferência de Caixa Colibri
-                </h1>
-                <p class="text-slate-500 mt-1">Envie os relatórios da Rede, PagBank e Nubank para detalhar os recebimentos.</p>
+    <!-- TELA DE LOGIN -->
+    <div id="loginScreen" class="min-h-screen flex items-center justify-center p-4 bg-slate-100">
+        <div class="bg-white p-8 rounded-3xl shadow-xl w-full max-w-md border border-slate-200">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
+                    <i data-lucide="lock" class="w-8 h-8"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-slate-900">Acesso Restrito</h2>
+                <p class="text-slate-500 mt-1">Grupo Caratininga</p>
             </div>
-            <div class="mt-4 md:mt-0 text-right bg-white px-6 py-3 rounded-2xl shadow-sm border border-slate-200">
-                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Total Geral Consolidado</p>
-                <p id="grandTotal" class="text-3xl font-black text-emerald-600">R$ 0,00</p>
+            
+            <form id="loginForm" class="space-y-5">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">E-mail corporativo</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                            <i data-lucide="mail" class="w-5 h-5"></i>
+                        </div>
+                        <input type="email" id="email" required class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" placeholder="usuario@empresa.com.br">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Senha</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                            <i data-lucide="key" class="w-5 h-5"></i>
+                        </div>
+                        <input type="password" id="senha" required class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" placeholder="••••••••">
+                    </div>
+                </div>
+                
+                <button type="submit" id="btnEntrar" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 mt-2">
+                    <i data-lucide="log-in" class="w-5 h-5"></i> Entrar no Sistema
+                </button>
+                
+                <div id="loginError" class="bg-red-50 text-red-600 p-3 rounded-lg text-sm text-center hidden font-medium border border-red-100 mt-4 flex items-center justify-center gap-2">
+                    <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                    <span>Credenciais inválidas.</span>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- TELA 1: DASHBOARD DE UNIDADES COM CALENDÁRIO -->
+    <div id="dashboardScreen" class="hidden min-h-screen p-4 w-full max-w-[1600px] mx-auto flex flex-col pt-8">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mb-2">Painel de Fechamentos</h1>
+            <p class="text-slate-500">Selecione o dia na unidade correspondente para iniciar a conferência.</p>
+            <div class="flex items-center justify-center gap-4 mt-3 text-xs font-semibold text-slate-500">
+                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-red-100 border border-red-300 block"></span> Pendente</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-emerald-100 border border-emerald-300 block"></span> Salvo</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-blue-100 border border-blue-300 block"></span> Hoje (fazer)</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-teal-100 border border-teal-300 block"></span> Hoje (salvo)</span>
+            </div>
+            <div class="flex justify-center mt-6">
+                <button onclick="fazerLogout()" class="text-sm font-semibold text-slate-400 hover:text-red-600 flex items-center gap-2 transition-colors">
+                    <i data-lucide="log-out" class="w-4 h-4"></i> Sair do Sistema
+                </button>
             </div>
         </header>
 
+        <!-- Container ajustado para 4 colunas em telas grandes -->
+        <div class="w-full">
+            <div id="cardsContainer" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6"></div>
+        </div>
+    </div>
+
+    <!-- TELA 2: ÁREA DE TRABALHO DA UNIDADE (Oculta por padrão) -->
+    <div id="appScreen" class="hidden p-4 md:p-8 max-w-7xl mx-auto">
+        
+        <!-- Barra Superior de Controle -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 mb-8 flex flex-col lg:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-4 w-full lg:w-auto">
+                <button onclick="voltarParaDashboard()" class="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors">
+                    <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                </button>
+                <div>
+                    <h1 class="text-2xl font-black text-slate-800 flex items-center gap-2">
+                        <span id="headerUnitName">Matriz</span>
+                    </h1>
+                    <p class="text-xs text-slate-500 uppercase tracking-wide font-bold" id="dbStatus">Conectado ao Banco</p>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto bg-slate-50 p-2 rounded-xl border border-slate-100">
+                <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-slate-200 shadow-sm w-full sm:w-auto">
+                    <i data-lucide="calendar" class="w-5 h-5 text-blue-500"></i>
+                    <span class="text-sm font-semibold text-slate-600">Dia de Referência:</span>
+                </div>
+                <input type="date" id="dateSelector" onchange="verificarDadosSalvos()" class="w-full sm:w-auto bg-white border border-slate-200 text-slate-700 font-bold px-4 py-2 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+
+            <div class="text-right w-full lg:w-auto bg-slate-800 text-white px-6 py-2 rounded-xl shadow-inner">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Consolidado</p>
+                <p id="grandTotal" class="text-2xl font-black text-emerald-400">R$ 0,00</p>
+            </div>
+        </div>
+
+        <!-- Alerta de Dados Recuperados -->
+        <div id="dadosRecuperadosAlert" class="hidden mb-6 bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-xl flex items-center gap-3 shadow-sm">
+            <i data-lucide="check-circle-2" class="w-6 h-6 text-blue-500"></i>
+            <div>
+                <p class="font-bold text-sm">Fechamento recuperado do banco de dados.</p>
+                <p class="text-xs text-blue-600">Você pode reenviar arquivos para editar os valores e clicar em Salvar para atualizar.</p>
+            </div>
+        </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            
             <!-- Card Itaú Rede -->
-            <div class="bg-white rounded-2xl shadow-sm border border-orange-200 p-6 flex flex-col relative overflow-hidden group hover:border-orange-300 transition-colors">
+            <div class="bg-white rounded-2xl shadow-sm border border-orange-200 p-5 flex flex-col relative overflow-hidden group hover:border-orange-300 transition-colors">
                 <div class="absolute top-0 right-0 w-24 h-24 bg-orange-50 rounded-bl-full -z-10"></div>
                 <div class="flex items-center gap-3 mb-4">
                     <div class="p-3 bg-orange-100 rounded-lg text-orange-600">
                         <i data-lucide="credit-card"></i>
                     </div>
-                    <h2 class="text-lg font-bold text-slate-800">1. Itaú Rede</h2>
+                    <h2 class="text-lg font-bold text-slate-800">Itaú Rede</h2>
                 </div>
                 
                 <div class="file-input-wrapper w-full mb-2">
                     <button class="w-full flex items-center justify-center gap-2 bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 border-dashed py-3 rounded-xl font-medium transition-colors text-sm">
-                        <i data-lucide="upload-cloud" class="w-4 h-4"></i> <span id="redeFileName" class="truncate max-w-[150px]">Arquivo Rede</span>
+                        <i data-lucide="upload-cloud" class="w-4 h-4"></i> <span id="redeFileName" class="truncate max-w-[150px]">Enviar Arquivo</span>
                     </button>
                     <input type="file" id="redeFile" accept=".csv, .xlsx, .xls" />
                 </div>
                 <div id="redeLoading" class="hidden text-center text-orange-500 text-xs my-2 font-medium animate-pulse">Processando...</div>
                 
                 <div class="mt-auto bg-slate-50 rounded-xl p-3 border border-slate-100 flex justify-between items-center">
-                    <span class="text-slate-500 text-xs font-medium">Lido (Recebidos):</span>
+                    <span class="text-slate-500 text-xs font-medium">Lido:</span>
                     <span id="redeTotalCard" class="font-bold text-slate-700">R$ 0,00</span>
                 </div>
             </div>
 
             <!-- Card PagBank -->
-            <div class="bg-white rounded-2xl shadow-sm border border-teal-200 p-6 flex flex-col relative overflow-hidden group hover:border-teal-300 transition-colors">
+            <div class="bg-white rounded-2xl shadow-sm border border-teal-200 p-5 flex flex-col relative overflow-hidden group hover:border-teal-300 transition-colors">
                 <div class="absolute top-0 right-0 w-24 h-24 bg-teal-50 rounded-bl-full -z-10"></div>
                 <div class="flex items-center gap-3 mb-4">
                     <div class="p-3 bg-teal-100 rounded-lg text-teal-600">
                         <i data-lucide="smartphone"></i>
                     </div>
-                    <h2 class="text-lg font-bold text-slate-800">2. PagBank</h2>
+                    <h2 class="text-lg font-bold text-slate-800">PagBank</h2>
                 </div>
                 
                 <div class="file-input-wrapper w-full mb-2">
                     <button class="w-full flex items-center justify-center gap-2 bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 border-dashed py-3 rounded-xl font-medium transition-colors text-sm">
-                        <i data-lucide="upload-cloud" class="w-4 h-4"></i> <span id="pagbankFileName" class="truncate max-w-[150px]">Arquivo PagBank</span>
+                        <i data-lucide="upload-cloud" class="w-4 h-4"></i> <span id="pagbankFileName" class="truncate max-w-[150px]">Enviar Arquivo</span>
                     </button>
                     <input type="file" id="pagbankFile" accept=".csv, .xlsx, .xls" />
                 </div>
                 <div id="pagbankLoading" class="hidden text-center text-teal-500 text-xs my-2 font-medium animate-pulse">Processando...</div>
 
                 <div class="mt-auto bg-slate-50 rounded-xl p-3 border border-slate-100 flex justify-between items-center">
-                    <span class="text-slate-500 text-xs font-medium">Lido (Recebidos):</span>
+                    <span class="text-slate-500 text-xs font-medium">Lido:</span>
                     <span id="pagbankTotalCard" class="font-bold text-slate-700">R$ 0,00</span>
                 </div>
             </div>
 
             <!-- Card Nubank -->
-            <div class="bg-white rounded-2xl shadow-sm border border-purple-200 p-6 flex flex-col relative overflow-hidden group hover:border-purple-300 transition-colors">
+            <div class="bg-white rounded-2xl shadow-sm border border-purple-200 p-5 flex flex-col relative overflow-hidden group hover:border-purple-300 transition-colors">
                 <div class="absolute top-0 right-0 w-24 h-24 bg-purple-50 rounded-bl-full -z-10"></div>
                 <div class="flex items-center gap-3 mb-4">
                     <div class="p-3 bg-purple-100 rounded-lg text-purple-600">
                         <i data-lucide="building-2"></i>
                     </div>
-                    <h2 class="text-lg font-bold text-slate-800">3. Nubank</h2>
+                    <h2 class="text-lg font-bold text-slate-800">Nubank</h2>
                 </div>
                 
                 <div class="file-input-wrapper w-full mb-2">
                     <button class="w-full flex items-center justify-center gap-2 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 border-dashed py-3 rounded-xl font-medium transition-colors text-sm">
-                        <i data-lucide="upload-cloud" class="w-4 h-4"></i> <span id="nubankFileName" class="truncate max-w-[150px]">Arquivo Nubank</span>
+                        <i data-lucide="upload-cloud" class="w-4 h-4"></i> <span id="nubankFileName" class="truncate max-w-[150px]">Enviar Arquivo</span>
                     </button>
                     <input type="file" id="nubankFile" accept=".csv, .xlsx, .xls" />
                 </div>
                 <div id="nubankLoading" class="hidden text-center text-purple-500 text-xs my-2 font-medium animate-pulse">Processando...</div>
 
                 <div class="mt-auto bg-slate-50 rounded-xl p-3 border border-slate-100 flex justify-between items-center">
-                    <span class="text-slate-500 text-xs font-medium">Lido (Recebidos):</span>
+                    <span class="text-slate-500 text-xs font-medium">Lido:</span>
                     <span id="nubankTotalCard" class="font-bold text-slate-700">R$ 0,00</span>
                 </div>
             </div>
-
         </div>
 
-        <!-- Tabela de Resumo Consolidado Detalhada -->
+        <!-- Tabela -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
             <div class="bg-slate-800 p-4 text-white flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <i data-lucide="table-properties" class="text-blue-400"></i>
-                    <h3 class="text-lg font-bold">Relatório Detalhado por Forma de Pagamento</h3>
+                    <h3 class="text-lg font-bold">Resumo Detalhado</h3>
                 </div>
             </div>
             
@@ -136,12 +246,10 @@
                             <th class="py-3 px-4 font-semibold text-right border-l border-slate-200 bg-blue-50 text-blue-700">Total Geral</th>
                         </tr>
                     </thead>
-                    <tbody class="text-slate-700 text-sm" id="tableBody">
-                        <!-- Conteúdo será gerado dinamicamente -->
-                    </tbody>
+                    <tbody class="text-slate-700 text-sm" id="tableBody"></tbody>
                     <tfoot>
                         <tr class="bg-slate-100 text-slate-900 font-black text-base">
-                            <td class="py-4 px-6 uppercase text-sm">Totais (R$)</td>
+                            <td class="py-4 px-6 uppercase text-sm">Soma Final</td>
                             <td class="py-4 px-4 text-right border-l border-slate-200 text-orange-700" id="tabRedeTotal">R$ 0,00</td>
                             <td class="py-4 px-4 text-right border-l border-slate-200 text-teal-700" id="tabPagBankTotal">R$ 0,00</td>
                             <td class="py-4 px-4 text-right border-l border-slate-200 text-purple-700" id="tabNubankTotal">R$ 0,00</td>
@@ -152,31 +260,317 @@
             </div>
         </div>
         
-        <div class="text-center pb-12">
-            <button onclick="limparTudo()" class="text-slate-400 hover:text-red-500 text-sm font-medium transition-colors flex items-center justify-center gap-2 mx-auto px-4 py-2 rounded-full hover:bg-red-50">
-                <i data-lucide="trash-2" class="w-4 h-4"></i> Limpar Todos os Dados e Recomeçar
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pb-12">
+            <button onclick="limparTudo()" class="text-slate-500 hover:text-red-600 border border-slate-200 hover:border-red-200 text-sm font-medium transition-colors flex items-center justify-center gap-2 px-6 py-3 rounded-xl hover:bg-red-50 w-full sm:w-auto">
+                <i data-lucide="eraser" class="w-4 h-4"></i> Limpar Formulário
+            </button>
+            <button id="btnSalvar" onclick="salvarNoFirestore()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold transition-all flex items-center justify-center gap-2 px-8 py-3 rounded-xl shadow-md hover:shadow-lg w-full sm:w-auto">
+                <i data-lucide="save" class="w-4 h-4"></i> Salvar / Atualizar Fechamento
             </button>
         </div>
-
     </div>
 
-    <script>
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-4 right-4 px-6 py-4 rounded-xl text-white font-bold shadow-2xl transition-all duration-300 transform translate-y-10 opacity-0 pointer-events-none z-50 flex items-center gap-3">
+        <i data-lucide="info" class="w-5 h-5"></i>
+        <span id="toastMsg">Mensagem</span>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, updateDoc, doc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBlNzgjvY6Mka3_m0_WFtK73RIeE3X9Vq0",
+            authDomain: "conferenciarecebidos.firebaseapp.com",
+            projectId: "conferenciarecebidos",
+            storageBucket: "conferenciarecebidos.firebasestorage.app",
+            messagingSenderId: "1044061032569",
+            appId: "1:1044061032569:web:676fb55bb80c606b5104a8",
+            measurementId: "G-JJ5CERHQL0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        let currentUser = null;
+        let unsubscribeDb = null;
+        const appId = 'acerto-colibri'; 
+        
+        // VARIÁVEIS DE ESTADO DO SISTEMA
+        let currentUnit = '';
+        let currentRecordId = null; 
+        window.todasConferencias = []; 
+
+        const unidadesInfo = [
+            { id: 'Matriz (Graça)', nome: 'Matriz', icon: 'building-2', color: 'blue' },
+            { id: 'Mucambo', nome: 'Mucambo', icon: 'store', color: 'emerald' },
+            { id: 'Frecheirinha', nome: 'Frecheirinha', icon: 'map-pin', color: 'orange' },
+            { id: 'Tianguá', nome: 'Tianguá', icon: 'map', color: 'purple' }
+        ];
+
+        // Objeto para rastrear o mês/ano de cada unidade
+        const calendarState = {};
+        const todayObj = new Date();
+        unidadesInfo.forEach(u => {
+            calendarState[u.id] = { month: todayObj.getMonth(), year: todayObj.getFullYear() };
+        });
+
+        // ==========================
+        // SISTEMA DE LOGIN E SEGURANÇA
+        // ==========================
+        
+        const loginScreen = document.getElementById('loginScreen');
+        const dashboardScreen = document.getElementById('dashboardScreen');
+        const appScreen = document.getElementById('appScreen');
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                loginScreen.classList.add('hidden');
+                dashboardScreen.classList.remove('hidden');
+                
+                const path = `artifacts/${appId}/users/${currentUser.uid}/fechamentos`;
+                unsubscribeDb = onSnapshot(collection(db, path), (snapshot) => {
+                    window.todasConferencias = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    renderAllCalendars(); // Atualiza os calendários para mostrar as bolinhas de fechamento
+                    if (currentUnit) window.verificarDadosSalvos(); 
+                }, (error) => {
+                    console.error("Erro no DB:", error);
+                });
+                
+                renderAllCalendars();
+            } else {
+                currentUser = null;
+                loginScreen.classList.remove('hidden');
+                dashboardScreen.classList.add('hidden');
+                appScreen.classList.add('hidden');
+                if (unsubscribeDb) unsubscribeDb();
+            }
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnEntrar');
+            const errorMsg = document.getElementById('loginError');
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Autenticando...';
+            btn.classList.add('opacity-80', 'cursor-not-allowed');
+            errorMsg.classList.add('hidden');
+            lucide.createIcons();
+
+            try {
+                await signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('senha').value);
+                document.getElementById('senha').value = '';
+            } catch (error) {
+                errorMsg.classList.remove('hidden');
+            } finally {
+                btn.innerHTML = '<i data-lucide="log-in" class="w-5 h-5"></i> Entrar no Sistema';
+                btn.classList.remove('opacity-80', 'cursor-not-allowed');
+                lucide.createIcons();
+            }
+        });
+
+        window.fazerLogout = async () => {
+            try { await signOut(auth); window.showToast("Você saiu com segurança.", "success"); } 
+            catch (error) { window.showToast("Erro ao sair.", "error"); }
+        };
+
+        // ==========================
+        // LÓGICA DE CALENDÁRIO NO DASHBOARD
+        // ==========================
+
+        const mesesNome = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+        const diasSemana = ["D", "S", "T", "Q", "Q", "S", "S"];
+
+        window.changeMonth = (unitId, dir) => {
+            let s = calendarState[unitId];
+            s.month += dir;
+            if (s.month < 0) { s.month = 11; s.year--; }
+            else if (s.month > 11) { s.month = 0; s.year++; }
+            renderAllCalendars();
+        }
+
+        const renderAllCalendars = () => {
+            const container = document.getElementById('cardsContainer');
+            if(!container) return;
+            container.innerHTML = '';
+
+            const hj = new Date();
+            hj.setHours(0,0,0,0); // Zera horas para facilitar comparação
+
+            unidadesInfo.forEach(u => {
+                const cState = calendarState[u.id];
+                const date = new Date(cState.year, cState.month, 1);
+                const firstDayIndex = date.getDay();
+                const lastDay = new Date(cState.year, cState.month + 1, 0).getDate();
+                
+                const monthStrStr = `${cState.year}-${String(cState.month + 1).padStart(2, '0')}`;
+                
+                const diasComDado = {};
+                window.todasConferencias.forEach(conf => {
+                    if (conf.unidade === u.id && conf.referencia.startsWith(monthStrStr)) {
+                        const dia = parseInt(conf.referencia.split('-')[2]);
+                        diasComDado[dia] = true;
+                    }
+                });
+
+                let daysHtml = '';
+                
+                diasSemana.forEach(d => {
+                    daysHtml += `<div class="text-[10px] font-bold text-slate-400 py-1 uppercase">${d}</div>`;
+                });
+
+                for (let i = 0; i < firstDayIndex; i++) {
+                    daysHtml += `<div class="day-box empty"></div>`;
+                }
+
+                for (let i = 1; i <= lastDay; i++) {
+                    const dataFormatada = `${cState.year}-${String(cState.month+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+                    const dataDoLoop = new Date(cState.year, cState.month, i);
+                    dataDoLoop.setHours(0,0,0,0);
+                    const temDado = diasComDado[i];
+                    
+                    let classesAdicionais = '';
+                    let tooltip = '';
+                    let bloqueado = false;
+
+                    if (dataDoLoop > hj) {
+                        // FUTURO: Cinza, sem hover, não clicável
+                        classesAdicionais = 'bg-slate-50 text-slate-300 border border-slate-100 cursor-not-allowed opacity-50';
+                        tooltip = 'Data futura indisponível';
+                        bloqueado = true;
+                    } 
+                    else if (dataDoLoop.getTime() === hj.getTime()) {
+                        // HOJE
+                        if (temDado) {
+                            classesAdicionais = 'bg-teal-50 text-teal-600 border border-teal-200 hover:bg-teal-100 font-bold'; // Azul Verde
+                            tooltip = 'Fechamento de hoje já feito!';
+                        } else {
+                            classesAdicionais = 'bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 font-bold shadow-sm'; // Azul para fazer
+                            tooltip = 'Fazer fechamento de hoje';
+                        }
+                    } 
+                    else {
+                        // PASSADO
+                        if (temDado) {
+                            classesAdicionais = 'bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-100'; // Verde ok
+                            tooltip = 'Fechamento Salvo';
+                        } else {
+                            classesAdicionais = 'bg-red-50 text-red-500 border border-red-200 hover:bg-red-100 shadow-sm'; // Vermelho pendente
+                            tooltip = 'Fechamento Pendente (Sem dados)';
+                        }
+                    }
+
+                    const clickAction = bloqueado ? '' : `onclick="abrirUnidadeNoDia('${u.id}', '${dataFormatada}')"`;
+                    daysHtml += `<div ${clickAction} class="day-box ${classesAdicionais}" title="${tooltip}">${i}</div>`;
+                }
+
+                const cardHtml = `
+                    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden hover:border-${u.color}-300 transition-colors flex flex-col h-full min-w-0">
+                        <div class="bg-${u.color}-50 p-3 border-b border-${u.color}-100 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <div class="bg-white p-1.5 rounded-xl text-${u.color}-600 shadow-sm border border-${u.color}-200">
+                                    <i data-lucide="${u.icon}" class="w-4 h-4"></i>
+                                </div>
+                                <h2 class="text-base font-bold text-slate-800 truncate">${u.id}</h2>
+                            </div>
+                        </div>
+                        <div class="p-3 lg:p-4 flex-1 flex flex-col">
+                            <div class="flex items-center justify-between mb-3">
+                                <button onclick="changeMonth('${u.id}', -1)" class="p-1 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors">
+                                    <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                                </button>
+                                <span class="font-bold text-slate-700 capitalize text-sm">${mesesNome[cState.month]} ${cState.year}</span>
+                                <button onclick="changeMonth('${u.id}', 1)" class="p-1 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors">
+                                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                            <div class="calendar-grid flex-1">
+                                ${daysHtml}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += cardHtml;
+            });
+            lucide.createIcons();
+        };
+
+        // ==========================
+        // LÓGICA DE NAVEGAÇÃO
+        // ==========================
+
+        window.abrirUnidadeNoDia = (nomeUnidade, dataStr) => {
+            currentUnit = nomeUnidade;
+            document.getElementById('headerUnitName').innerText = nomeUnidade;
+            dashboardScreen.classList.add('hidden');
+            appScreen.classList.remove('hidden');
+
+            const dateInput = document.getElementById('dateSelector');
+            dateInput.type = 'date'; 
+            dateInput.value = dataStr;
+
+            window.verificarDadosSalvos();
+        };
+
+        window.voltarParaDashboard = () => {
+            appScreen.classList.add('hidden');
+            dashboardScreen.classList.remove('hidden');
+            currentUnit = '';
+            window.limparTudo(false); 
+            renderAllCalendars(); 
+        };
+
+        window.verificarDadosSalvos = () => {
+            if (!currentUnit) return;
+            const refDate = document.getElementById('dateSelector').value;
+            if (!refDate) return;
+
+            const registroEncontrado = window.todasConferencias.find(doc => 
+                doc.unidade === currentUnit && doc.referencia === refDate
+            );
+
+            if (registroEncontrado) {
+                currentRecordId = registroEncontrado.id;
+                state = JSON.parse(JSON.stringify(registroEncontrado.detalhado)); 
+                
+                document.getElementById('dadosRecuperadosAlert').classList.remove('hidden');
+                document.getElementById('redeFileName').innerText = '✔ Arquivo Salvo';
+                document.getElementById('pagbankFileName').innerText = '✔ Arquivo Salvo';
+                document.getElementById('nubankFileName').innerText = '✔ Arquivo Salvo';
+                
+                renderTable();
+                window.showToast("Fechamento carregado do banco.", "success");
+            } else {
+                currentRecordId = null;
+                document.getElementById('dadosRecuperadosAlert').classList.add('hidden');
+                window.limparTudo(false); 
+            }
+        };
+
+        // ==========================
+        // UTILITÁRIOS E TOAST
+        // ==========================
         lucide.createIcons();
 
-        // Estrutura de chaves base (Atualizado com Pix Maquininha/QR Code e Pix Chave)
+        window.showToast = (message, type = 'error') => {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            toastMsg.textContent = message;
+            toast.className = `fixed bottom-4 right-4 px-6 py-4 rounded-xl text-white font-bold shadow-2xl transition-all duration-300 transform z-50 flex items-center gap-3 ${type === 'success' ? 'bg-emerald-500' : 'bg-red-500'}`;
+            toast.classList.remove('translate-y-10', 'opacity-0', 'pointer-events-none');
+            setTimeout(() => toast.classList.add('translate-y-10', 'opacity-0', 'pointer-events-none'), 4000);
+        };
+
         const baseState = () => ({
             credito_master: 0, credito_visa: 0, credito_elo: 0, credito_outros: 0,
             debito_master: 0, debito_visa: 0, debito_elo: 0, debito_outros: 0,
-            pix_qrcode: 0, pix_chave: 0, pix_outros: 0,
-            outros: 0, total: 0
+            pix_qrcode: 0, pix_chave: 0, pix_outros: 0, outros: 0, total: 0
         });
 
-        // Estado Global
-        let state = {
-            rede: baseState(),
-            pagbank: baseState(),
-            nubank: baseState()
-        };
+        let state = { rede: baseState(), pagbank: baseState(), nubank: baseState() };
 
         const formatBR = (valor) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
 
@@ -187,10 +581,8 @@
             if (str === '') return 0;
             const lastComma = str.lastIndexOf(',');
             const lastDot = str.lastIndexOf('.');
-            
             if (lastComma > lastDot) str = str.replace(/\./g, '').replace(',', '.');
             else if (lastDot > lastComma) str = str.replace(/,/g, '');
-            
             const num = parseFloat(str);
             return isNaN(num) ? 0 : num;
         };
@@ -200,57 +592,18 @@
             return txt.toString().toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
         };
 
-        // Renderiza as linhas da tabela
         const renderTable = () => {
             const groups = [
-                {
-                    id: 'credito',
-                    name: 'Crédito',
-                    color: 'text-blue-700 bg-blue-50/50',
-                    items: [
-                        { key: 'credito_master', label: 'Mastercard' },
-                        { key: 'credito_visa', label: 'Visa' },
-                        { key: 'credito_elo', label: 'Elo' },
-                        { key: 'credito_outros', label: 'Outras Bandeiras' }
-                    ]
-                },
-                {
-                    id: 'debito',
-                    name: 'Débito',
-                    color: 'text-purple-700 bg-purple-50/50',
-                    items: [
-                        { key: 'debito_master', label: 'Mastercard' },
-                        { key: 'debito_visa', label: 'Visa' },
-                        { key: 'debito_elo', label: 'Elo' },
-                        { key: 'debito_outros', label: 'Outras Bandeiras' }
-                    ]
-                },
-                {
-                    id: 'pix',
-                    name: 'Pix',
-                    color: 'text-teal-700 bg-teal-50/50',
-                    items: [
-                        { key: 'pix_qrcode', label: 'Pix Maquininha / QR Code' },
-                        { key: 'pix_chave', label: 'Pix Chave / Transferência' },
-                        { key: 'pix_outros', label: 'Outros Pix' }
-                    ]
-                },
-                {
-                    id: 'outros',
-                    name: 'Outras Modalidades',
-                    color: 'text-slate-700 bg-slate-100',
-                    items: [
-                        { key: 'outros', label: 'Não Identificados' }
-                    ]
-                }
+                { id: 'credito', name: 'Crédito', color: 'text-blue-700 bg-blue-50/50', items: [{ key: 'credito_master', label: 'Mastercard' }, { key: 'credito_visa', label: 'Visa' }, { key: 'credito_elo', label: 'Elo' }, { key: 'credito_outros', label: 'Outras Bandeiras' }] },
+                { id: 'debito', name: 'Débito', color: 'text-purple-700 bg-purple-50/50', items: [{ key: 'debito_master', label: 'Mastercard' }, { key: 'debito_visa', label: 'Visa' }, { key: 'debito_elo', label: 'Elo' }, { key: 'debito_outros', label: 'Outras Bandeiras' }] },
+                { id: 'pix', name: 'Pix', color: 'text-teal-700 bg-teal-50/50', items: [{ key: 'pix_qrcode', label: 'Pix Maquininha / QR Code' }, { key: 'pix_chave', label: 'Pix Chave / Transferência' }, { key: 'pix_outros', label: 'Outros Pix' }] },
+                { id: 'outros', name: 'Outras Modalidades', color: 'text-slate-700 bg-slate-100', items: [{ key: 'outros', label: 'Não Identificados' }] }
             ];
 
             const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = '';
-
-            let grandTotalRede = 0;
-            let grandTotalPag = 0;
-            let grandTotalNu = 0;
+            if(tbody) tbody.innerHTML = '';
+            
+            let grandTotalRede = 0, grandTotalPag = 0, grandTotalNu = 0;
 
             groups.forEach(group => {
                 let subRede = 0, subPag = 0, subNu = 0;
@@ -262,106 +615,69 @@
                     const vNu = state.nubank[item.key] || 0;
                     const totalRow = vRede + vPag + vNu;
 
-                    subRede += vRede;
-                    subPag += vPag;
-                    subNu += vNu;
-
-                    // Mostra a linha apenas se tiver valor em algum banco (limpeza visual)
-                    // Mas mantemos as linhas de crédito/débito/pix base sempre visiveis para referencia
+                    subRede += vRede; subPag += vPag; subNu += vNu;
                     const hideZero = (totalRow === 0 && item.key.includes('outros')) ? 'hidden' : '';
 
-                    rowsHtml += `
-                        <tr class="border-b border-slate-100 hover:bg-slate-50 ${hideZero}">
-                            <td class="py-2 px-6 pl-10 font-medium text-slate-600 flex items-center gap-2 text-sm">
-                                <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> ${item.label}
-                            </td>
-                            <td class="py-2 px-4 text-right border-l border-slate-100 ${vRede > 0 ? '' : 'text-slate-300'}">${formatBR(vRede)}</td>
-                            <td class="py-2 px-4 text-right border-l border-slate-100 ${vPag > 0 ? '' : 'text-slate-300'}">${formatBR(vPag)}</td>
-                            <td class="py-2 px-4 text-right border-l border-slate-100 ${vNu > 0 ? '' : 'text-slate-300'}">${formatBR(vNu)}</td>
-                            <td class="py-2 px-4 text-right border-l border-slate-100 font-bold bg-slate-50/50">${formatBR(totalRow)}</td>
-                        </tr>
-                    `;
+                    rowsHtml += `<tr class="border-b border-slate-100 hover:bg-slate-50 ${hideZero}"><td class="py-2 px-6 pl-10 font-medium text-slate-600 flex items-center gap-2 text-sm"><span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> ${item.label}</td><td class="py-2 px-4 text-right border-l border-slate-100 ${vRede > 0 ? '' : 'text-slate-300'}">${formatBR(vRede)}</td><td class="py-2 px-4 text-right border-l border-slate-100 ${vPag > 0 ? '' : 'text-slate-300'}">${formatBR(vPag)}</td><td class="py-2 px-4 text-right border-l border-slate-100 ${vNu > 0 ? '' : 'text-slate-300'}">${formatBR(vNu)}</td><td class="py-2 px-4 text-right border-l border-slate-100 font-bold bg-slate-50/50">${formatBR(totalRow)}</td></tr>`;
                 });
 
-                grandTotalRede += subRede;
-                grandTotalPag += subPag;
-                grandTotalNu += subNu;
-
-                // Linha de Cabeçalho do Grupo (Com subtotal)
-                const groupHeader = `
-                    <tr class="group-header ${group.color} font-bold text-sm">
-                        <td class="py-3 px-6 uppercase tracking-wider flex justify-between">
-                            <span>${group.name}</span>
-                        </td>
-                        <td class="py-3 px-4 text-right border-l border-white/40">${formatBR(subRede)}</td>
-                        <td class="py-3 px-4 text-right border-l border-white/40">${formatBR(subPag)}</td>
-                        <td class="py-3 px-4 text-right border-l border-white/40">${formatBR(subNu)}</td>
-                        <td class="py-3 px-4 text-right border-l border-white/40">${formatBR(subRede + subPag + subNu)}</td>
-                    </tr>
-                `;
-
-                tbody.innerHTML += groupHeader + rowsHtml;
+                grandTotalRede += subRede; grandTotalPag += subPag; grandTotalNu += subNu;
+                if(tbody) {
+                    tbody.innerHTML += `<tr class="group-header ${group.color} font-bold text-sm"><td class="py-3 px-6 uppercase tracking-wider flex justify-between"><span>${group.name}</span></td><td class="py-3 px-4 text-right border-l border-white/40">${formatBR(subRede)}</td><td class="py-3 px-4 text-right border-l border-white/40">${formatBR(subPag)}</td><td class="py-3 px-4 text-right border-l border-white/40">${formatBR(subNu)}</td><td class="py-3 px-4 text-right border-l border-white/40">${formatBR(subRede + subPag + subNu)}</td></tr>` + rowsHtml;
+                }
             });
 
-            // Totais Finais
-            state.rede.total = grandTotalRede;
-            state.pagbank.total = grandTotalPag;
+            state.rede.total = grandTotalRede; 
+            state.pagbank.total = grandTotalPag; 
             state.nubank.total = grandTotalNu;
-            
             const somaFinal = grandTotalRede + grandTotalPag + grandTotalNu;
 
-            document.getElementById('tabRedeTotal').innerText = formatBR(grandTotalRede);
-            document.getElementById('tabPagBankTotal').innerText = formatBR(grandTotalPag);
-            document.getElementById('tabNubankTotal').innerText = formatBR(grandTotalNu);
-            document.getElementById('tabTotalGeral').innerText = formatBR(somaFinal);
+            const safeSetText = (id, text) => { const el = document.getElementById(id); if (el) el.innerText = text; };
 
-            // Cards Superiores
-            document.getElementById('redeTotalCard').innerText = formatBR(grandTotalRede);
-            document.getElementById('pagbankTotalCard').innerText = formatBR(grandTotalPag);
-            document.getElementById('nubankTotalCard').innerText = formatBR(grandTotalNu);
-            document.getElementById('grandTotal').innerText = formatBR(somaFinal);
+            safeSetText('tabRedeTotal', formatBR(grandTotalRede));
+            safeSetText('tabPagBankTotal', formatBR(grandTotalPag));
+            safeSetText('tabNubankTotal', formatBR(grandTotalNu));
+            safeSetText('tabTotalGeral', formatBR(somaFinal));
+            
+            safeSetText('redeTotalCard', formatBR(grandTotalRede));
+            safeSetText('pagbankTotalCard', formatBR(grandTotalPag));
+            safeSetText('nubankTotalCard', formatBR(grandTotalNu));
+            safeSetText('grandTotal', formatBR(somaFinal));
         };
-
-        // ==========================
-        // LEITORES DE ARQUIVO
-        // ==========================
 
         const handleFileRead = (fileId, bankName, logicCallback) => {
-            document.getElementById(fileId).addEventListener('change', function(e) {
-                const file = e.target.files[0];
-                if (!file) return;
-                
-                document.getElementById(`${fileId}Name`).innerText = file.name;
-                document.getElementById(`${fileId.replace('File', 'Loading')}`).classList.remove('hidden');
-                
-                state[bankName] = baseState(); // Reseta estado do banco
-                
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    try {
-                        const data = new Uint8Array(e.target.result);
-                        const workbook = XLSX.read(data, {type: 'array'});
-                        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                        const rows = XLSX.utils.sheet_to_json(firstSheet, {header: 1, defval: ""});
-                        
-                        logicCallback(rows, bankName);
-                        renderTable();
-                    } catch (error) {
-                        console.error(error);
-                        alert(`Ocorreu um erro ao processar o arquivo do ${bankName.toUpperCase()}.`);
-                    } finally {
-                        document.getElementById(`${fileId.replace('File', 'Loading')}`).classList.add('hidden');
-                    }
-                };
-                reader.readAsArrayBuffer(file);
-            });
+            const el = document.getElementById(fileId);
+            if(el) {
+                el.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    
+                    document.getElementById(`${fileId}Name`).innerText = file.name;
+                    document.getElementById(`${fileId.replace('File', 'Loading')}`).classList.remove('hidden');
+                    state[bankName] = baseState(); 
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            const data = new Uint8Array(e.target.result);
+                            const workbook = XLSX.read(data, {type: 'array'});
+                            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                            const rows = XLSX.utils.sheet_to_json(firstSheet, {header: 1, defval: ""});
+                            logicCallback(rows, bankName);
+                            renderTable();
+                        } catch (error) {
+                            window.showToast(`Erro ao ler o arquivo do ${bankName.toUpperCase()}.`, "error");
+                        } finally {
+                            document.getElementById(`${fileId.replace('File', 'Loading')}`).classList.add('hidden');
+                        }
+                    };
+                    reader.readAsArrayBuffer(file);
+                });
+            }
         };
 
-        // 1. Lógica Itaú Rede
         handleFileRead('redeFile', 'rede', (rows, bank) => {
-            let isHeaderFound = false;
-            let indices = { valor: -1, mod: -1, status: -1, band: -1, meio: -1 };
-
+            let isHeaderFound = false; let indices = { valor: -1, mod: -1, status: -1, band: -1, meio: -1 };
             for (let row of rows) {
                 if (!isHeaderFound) {
                     const rowText = cleanText(row.join(' '));
@@ -371,48 +687,28 @@
                         indices.mod = row.findIndex(c => cleanText(c).includes('modalidade') || cleanText(c).includes('tipo de produto'));
                         indices.status = row.findIndex(c => cleanText(c).includes('status'));
                         indices.band = row.findIndex(c => cleanText(c).includes('bandeira'));
-                        indices.meio = row.findIndex(c => cleanText(c).includes('meio de pagamento') || cleanText(c).includes('tipo de maquininha'));
                         if (indices.valor !== -1) isHeaderFound = true;
                     }
                     continue;
                 }
-
                 if (isHeaderFound && row[indices.valor]) {
                     const status = indices.status !== -1 ? cleanText(row[indices.status]) : '';
                     if (status.includes('negada') || status.includes('cancelada') || status.includes('desfeita') || status.includes('rejeitada')) continue;
-
                     const valor = parseNumberBR(row[indices.valor]);
                     if (valor === 0) continue;
-
                     const mod = indices.mod !== -1 ? cleanText(row[indices.mod]) : '';
                     const band = indices.band !== -1 ? cleanText(row[indices.band]) : '';
-
                     if (mod.includes('credito')) {
-                        if (band.includes('master')) state[bank].credito_master += valor;
-                        else if (band.includes('visa')) state[bank].credito_visa += valor;
-                        else if (band.includes('elo')) state[bank].credito_elo += valor;
-                        else state[bank].credito_outros += valor;
+                        if (band.includes('master')) state[bank].credito_master += valor; else if (band.includes('visa')) state[bank].credito_visa += valor; else if (band.includes('elo')) state[bank].credito_elo += valor; else state[bank].credito_outros += valor;
                     } else if (mod.includes('debito')) {
-                        if (band.includes('master')) state[bank].debito_master += valor;
-                        else if (band.includes('visa')) state[bank].debito_visa += valor;
-                        else if (band.includes('elo')) state[bank].debito_elo += valor;
-                        else state[bank].debito_outros += valor;
-                    } else if (mod.includes('pix')) {
-                        // Na Rede (Maquininha/TEF), todo PIX é via QR Code/Maquininha
-                        state[bank].pix_qrcode += valor;
-                    } else {
-                        state[bank].outros += valor;
-                    }
+                        if (band.includes('master')) state[bank].debito_master += valor; else if (band.includes('visa')) state[bank].debito_visa += valor; else if (band.includes('elo')) state[bank].debito_elo += valor; else state[bank].debito_outros += valor;
+                    } else if (mod.includes('pix')) state[bank].pix_qrcode += valor; else state[bank].outros += valor;
                 }
             }
-            if(!isHeaderFound) alert("Colunas de valor não encontradas na Rede.");
         });
 
-        // 2. Lógica PagBank
         handleFileRead('pagbankFile', 'pagbank', (rows, bank) => {
-            let isHeaderFound = false;
-            let indices = { entradas: -1, tipo: -1, desc: -1 };
-
+            let isHeaderFound = false; let indices = { entradas: -1, tipo: -1, desc: -1 };
             for (let row of rows) {
                 if (!isHeaderFound) {
                     indices.entradas = row.findIndex(c => cleanText(c).includes('entradas') || cleanText(c).includes('valor'));
@@ -421,109 +717,112 @@
                     if (indices.entradas !== -1) isHeaderFound = true;
                     continue;
                 }
-
                 if (isHeaderFound && row[indices.entradas]) {
                     const tipo = indices.tipo !== -1 ? cleanText(row[indices.tipo]) : '';
                     const desc = indices.desc !== -1 ? cleanText(row[indices.desc]) : '';
                     const textoTotal = tipo + " " + desc;
-
-                    // Ignorar Saídas se houver
                     if (textoTotal.includes('enviado') || textoTotal.includes('retirada') || textoTotal.includes('saque') || textoTotal.includes('transferencia enviada')) continue;
-
                     const valor = parseNumberBR(row[indices.entradas]);
                     if (valor > 0) {
-                        
-                        // Lógica especificada para o PagBank:
-                        if (textoTotal.includes('vendas') && textoTotal.includes('disponivel pix')) {
-                            // Pagbank: Quando é QR code vem como Vendas e "Disponivel PIX"
-                            state[bank].pix_qrcode += valor;
-                        } 
-                        else if (textoTotal.includes('pix recebido')) {
-                            // Pagbank: Quando é Pix chave vem "Pix recebido" e nome da pessoa
-                            state[bank].pix_chave += valor;
-                        } 
-                        else if (textoTotal.includes('credito')) {
-                            if (textoTotal.includes('master')) state[bank].credito_master += valor;
-                            else if (textoTotal.includes('visa')) state[bank].credito_visa += valor;
-                            else if (textoTotal.includes('elo')) state[bank].credito_elo += valor;
-                            else state[bank].credito_outros += valor;
-                        } 
-                        else if (textoTotal.includes('debito')) {
-                            if (textoTotal.includes('master')) state[bank].debito_master += valor;
-                            else if (textoTotal.includes('visa')) state[bank].debito_visa += valor;
-                            else if (textoTotal.includes('elo')) state[bank].debito_elo += valor;
-                            else state[bank].debito_outros += valor;
-                        } 
-                        else if (textoTotal.includes('pix')) {
-                            // Fallback caso apareça algum pix diferente do esperado
-                            state[bank].pix_outros += valor;
-                        }
-                        else {
-                            state[bank].outros += valor;
-                        }
+                        if (textoTotal.includes('vendas') && textoTotal.includes('disponivel pix')) state[bank].pix_qrcode += valor;
+                        else if (textoTotal.includes('pix recebido')) state[bank].pix_chave += valor;
+                        else if (textoTotal.includes('credito')) { if (textoTotal.includes('master')) state[bank].credito_master += valor; else if (textoTotal.includes('visa')) state[bank].credito_visa += valor; else if (textoTotal.includes('elo')) state[bank].credito_elo += valor; else state[bank].credito_outros += valor; } 
+                        else if (textoTotal.includes('debito')) { if (textoTotal.includes('master')) state[bank].debito_master += valor; else if (textoTotal.includes('visa')) state[bank].debito_visa += valor; else if (textoTotal.includes('elo')) state[bank].debito_elo += valor; else state[bank].debito_outros += valor; } 
+                        else if (textoTotal.includes('pix')) state[bank].pix_outros += valor; else state[bank].outros += valor;
                     }
                 }
             }
-            if(!isHeaderFound) alert("Coluna de 'Entradas' não encontrada no PagBank.");
         });
 
-        // 3. Lógica Nubank
         handleFileRead('nubankFile', 'nubank', (rows, bank) => {
-            let isHeaderFound = false;
-            let idxValor = -1;
-
+            let isHeaderFound = false; let idxValor = -1;
             for (let row of rows) {
                 if (!isHeaderFound) {
                     idxValor = row.findIndex(c => cleanText(c) === 'valor' || cleanText(c).includes('entradas'));
                     if (idxValor !== -1) isHeaderFound = true;
                     continue;
                 }
-
                 if (isHeaderFound && row[idxValor]) {
-                    // Em vez de buscar o cabeçalho 'Descrição' (que pode vir quebrado como 'DescriÃ§Ã£o'),
-                    // juntamos todo o conteúdo da linha. Isso garante que não vamos perder o texto da venda!
                     const textoTotal = row.join(' ').toLowerCase();
-
-                    const valorRaw = row[idxValor];
-                    const valor = parseNumberBR(valorRaw);
-                    
+                    const valor = parseNumberBR(row[idxValor]);
                     if (valor > 0 && !textoTotal.includes('pagamento') && !textoTotal.includes('enviad') && !textoTotal.includes('saída')) {
-                        
-                        // Procuramos 'pix', 'recebida' ou 'transfer' direto no texto total da linha
-                        if (textoTotal.includes('pix') || textoTotal.includes('recebida') || textoTotal.includes('transfer')) {
-                            state[bank].pix_chave += valor;
-                        } else if (textoTotal.includes('credito') || textoTotal.includes('cartao') || textoTotal.includes('cartã')) {
-                            if (textoTotal.includes('master')) state[bank].credito_master += valor;
-                            else if (textoTotal.includes('visa')) state[bank].credito_visa += valor;
-                            else if (textoTotal.includes('elo')) state[bank].credito_elo += valor;
-                            else state[bank].credito_outros += valor;
-                        } else {
-                            state[bank].outros += valor;
-                        }
+                        if (textoTotal.includes('pix') || textoTotal.includes('recebida') || textoTotal.includes('transfer')) state[bank].pix_chave += valor;
+                        else if (textoTotal.includes('credito') || textoTotal.includes('cartao') || textoTotal.includes('cartã')) { if (textoTotal.includes('master')) state[bank].credito_master += valor; else if (textoTotal.includes('visa')) state[bank].credito_visa += valor; else if (textoTotal.includes('elo')) state[bank].credito_elo += valor; else state[bank].credito_outros += valor; }
+                        else state[bank].outros += valor;
                     }
                 }
             }
-            if(!isHeaderFound) alert("Coluna de 'Valor' não encontrada no extrato Nubank.");
         });
 
-        // Função de Limpeza Total
-        function limparTudo() {
-            state.rede = baseState();
-            state.pagbank = baseState();
-            state.nubank = baseState();
+        window.limparTudo = (showAlert = true) => {
+            state.rede = baseState(); state.pagbank = baseState(); state.nubank = baseState();
             
-            document.getElementById('redeFile').value = '';
-            document.getElementById('pagbankFile').value = '';
-            document.getElementById('nubankFile').value = '';
-            
-            document.getElementById('redeFileName').innerText = 'Arquivo Rede';
-            document.getElementById('pagbankFileName').innerText = 'Arquivo PagBank';
-            document.getElementById('nubankFileName').innerText = 'Arquivo Nubank';
+            const clearInput = (id) => { const el = document.getElementById(id); if (el) el.value = ''; };
+            const clearText = (id, text) => { const el = document.getElementById(id); if (el) el.innerText = text; };
+
+            clearInput('redeFile'); clearInput('pagbankFile'); clearInput('nubankFile');
+            clearText('redeFileName', 'Enviar Arquivo'); clearText('pagbankFileName', 'Enviar Arquivo'); clearText('nubankFileName', 'Enviar Arquivo');
             
             renderTable();
-        }
+            if (showAlert) window.showToast("Formulário limpo.", "success");
+        };
 
-        // Primeira carga zera e pinta a tabela
+        window.salvarNoFirestore = async () => {
+            if (!currentUser) {
+                window.showToast("Erro de segurança: Autenticação necessária.", "error");
+                return;
+            }
+
+            const totalGeral = state.rede.total + state.pagbank.total + state.nubank.total;
+            if (totalGeral === 0) {
+                window.showToast("Atenção: Não há valores lidos para salvar.", "error");
+                return;
+            }
+            
+            const dateInput = document.getElementById('dateSelector').value;
+            const mode = 'date';
+            
+            if(!dateInput || !currentUnit) {
+                window.showToast("Erro: Selecione a data e unidade.", "error");
+                return;
+            }
+
+            const btn = document.getElementById('btnSalvar');
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Salvando no Banco...';
+            btn.disabled = true;
+            lucide.createIcons();
+
+            try {
+                const basePath = `artifacts/${appId}/users/${currentUser.uid}/fechamentos`;
+                const payload = {
+                    unidade: currentUnit,
+                    referencia: dateInput,
+                    modoVisualizacao: mode,
+                    dataAtualizacao: serverTimestamp(),
+                    totaisGlobais: { rede: state.rede.total, pagbank: state.pagbank.total, nubank: state.nubank.total, somaGeral: totalGeral },
+                    detalhado: state 
+                };
+
+                if (currentRecordId) {
+                    await updateDoc(doc(db, basePath, currentRecordId), payload);
+                    window.showToast("Fechamento ATUALIZADO com sucesso!", "success");
+                } else {
+                    const docRef = await addDoc(collection(db, basePath), payload);
+                    currentRecordId = docRef.id;
+                    document.getElementById('dadosRecuperadosAlert').classList.remove('hidden');
+                    window.showToast("Novo fechamento SALVO com sucesso!", "success");
+                }
+            } catch (error) {
+                console.error("Erro ao salvar:", error);
+                window.showToast("Erro ao comunicar com o banco de dados.", "error");
+            } finally {
+                btn.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> Salvar / Atualizar Fechamento';
+                btn.disabled = false;
+                lucide.createIcons();
+            }
+        };
+
+        // Renderiza tabela zerada na inicialização
         renderTable();
     </script>
 </body>
