@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acerto de Caixa - Colibri</title>
+    <!-- Tailwind CSS para o visual moderno -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SheetJS para ler Excel e CSV diretamente no navegador -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .file-input-wrapper { position: relative; overflow: hidden; display: inline-block; }
+        .file-input-wrapper input[type=file] {
+            font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; height: 100%;
+        }
+        /* Efeitos suaves */
+        tbody tr:not(.group-header) { transition: background-color 0.2s; }
+        .group-header td { border-top: 2px solid #e2e8f0; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen p-4 md:p-8 text-slate-800">
+
+    <div class="max-w-7xl mx-auto">
+        
+        <!-- Cabeçalho -->
+        <header class="mb-8 text-center md:text-left flex flex-col md:flex-row items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-slate-900 flex items-center gap-2 justify-center md:justify-start">
+                    <i data-lucide="calculator" class="text-blue-600"></i>
+                    Conferência de Caixa Colibri
+                </h1>
+                <p class="text-slate-500 mt-1">Envie os relatórios da Rede, PagBank e Nubank para detalhar os recebimentos.</p>
+            </div>
+            <div class="mt-4 md:mt-0 text-right bg-white px-6 py-3 rounded-2xl shadow-sm border border-slate-200">
+                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Total Geral Consolidado</p>
+                <p id="grandTotal" class="text-3xl font-black text-emerald-600">R$ 0,00</p>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            
+            <!-- Card Itaú Rede -->
+            <div class="bg-white rounded-2xl shadow-sm border border-orange-200 p-6 flex flex-col relative overflow-hidden group hover:border-orange-300 transition-colors">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-orange-50 rounded-bl-full -z-10"></div>
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="p-3 bg-orange-100 rounded-lg text-orange-600">
+                        <i data-lucide="credit-card"></i>
+                    </div>
+                    <h2 class="text-lg font-bold text-slate-800">1. Itaú Rede</h2>
+                </div>
+                
+                <div class="file-input-wrapper w-full mb-2">
+                    <button class="w-full flex items-center justify-center gap-2 bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 border-dashed py-3 rounded-xl font-medium transition-colors text-sm">
+                        <i data-lucide="upload-cloud" class="w-4 h-4"></i> <span id="redeFileName" class="truncate max-w-[150px]">Arquivo Rede</span>
+                    </button>
+                    <input type="file" id="redeFile" accept=".csv, .xlsx, .xls" />
+                </div>
+                <div id="redeLoading" class="hidden text-center text-orange-500 text-xs my-2 font-medium animate-pulse">Processando...</div>
+                
+                <div class="mt-auto bg-slate-50 rounded-xl p-3 border border-slate-100 flex justify-between items-center">
+                    <span class="text-slate-500 text-xs font-medium">Lido (Recebidos):</span>
+                    <span id="redeTotalCard" class="font-bold text-slate-700">R$ 0,00</span>
+                </div>
+            </div>
+
+            <!-- Card PagBank -->
+            <div class="bg-white rounded-2xl shadow-sm border border-teal-200 p-6 flex flex-col relative overflow-hidden group hover:border-teal-300 transition-colors">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-teal-50 rounded-bl-full -z-10"></div>
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="p-3 bg-teal-100 rounded-lg text-teal-600">
+                        <i data-lucide="smartphone"></i>
+                    </div>
+                    <h2 class="text-lg font-bold text-slate-800">2. PagBank</h2>
+                </div>
+                
+                <div class="file-input-wrapper w-full mb-2">
+                    <button class="w-full flex items-center justify-center gap-2 bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 border-dashed py-3 rounded-xl font-medium transition-colors text-sm">
+                        <i data-lucide="upload-cloud" class="w-4 h-4"></i> <span id="pagbankFileName" class="truncate max-w-[150px]">Arquivo PagBank</span>
+                    </button>
+                    <input type="file" id="pagbankFile" accept=".csv, .xlsx, .xls" />
+                </div>
+                <div id="pagbankLoading" class="hidden text-center text-teal-500 text-xs my-2 font-medium animate-pulse">Processando...</div>
+
+                <div class="mt-auto bg-slate-50 rounded-xl p-3 border border-slate-100 flex justify-between items-center">
+                    <span class="text-slate-500 text-xs font-medium">Lido (Recebidos):</span>
+                    <span id="pagbankTotalCard" class="font-bold text-slate-700">R$ 0,00</span>
+                </div>
+            </div>
+
+            <!-- Card Nubank -->
+            <div class="bg-white rounded-2xl shadow-sm border border-purple-200 p-6 flex flex-col relative overflow-hidden group hover:border-purple-300 transition-colors">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-purple-50 rounded-bl-full -z-10"></div>
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="p-3 bg-purple-100 rounded-lg text-purple-600">
+                        <i data-lucide="building-2"></i>
+                    </div>
+                    <h2 class="text-lg font-bold text-slate-800">3. Nubank</h2>
+                </div>
+                
+                <div class="file-input-wrapper w-full mb-2">
+                    <button class="w-full flex items-center justify-center gap-2 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 border-dashed py-3 rounded-xl font-medium transition-colors text-sm">
+                        <i data-lucide="upload-cloud" class="w-4 h-4"></i> <span id="nubankFileName" class="truncate max-w-[150px]">Arquivo Nubank</span>
+                    </button>
+                    <input type="file" id="nubankFile" accept=".csv, .xlsx, .xls" />
+                </div>
+                <div id="nubankLoading" class="hidden text-center text-purple-500 text-xs my-2 font-medium animate-pulse">Processando...</div>
+
+                <div class="mt-auto bg-slate-50 rounded-xl p-3 border border-slate-100 flex justify-between items-center">
+                    <span class="text-slate-500 text-xs font-medium">Lido (Recebidos):</span>
+                    <span id="nubankTotalCard" class="font-bold text-slate-700">R$ 0,00</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Tabela de Resumo Consolidado Detalhada -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+            <div class="bg-slate-800 p-4 text-white flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="table-properties" class="text-blue-400"></i>
+                    <h3 class="text-lg font-bold">Relatório Detalhado por Forma de Pagamento</h3>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse min-w-[700px]">
+                    <thead>
+                        <tr class="border-b border-slate-200 bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
+                            <th class="py-3 px-6 font-semibold w-1/4">Categoria / Bandeira</th>
+                            <th class="py-3 px-4 font-semibold text-right border-l border-slate-200">Itaú Rede</th>
+                            <th class="py-3 px-4 font-semibold text-right border-l border-slate-200">PagBank</th>
+                            <th class="py-3 px-4 font-semibold text-right border-l border-slate-200">Nubank</th>
+                            <th class="py-3 px-4 font-semibold text-right border-l border-slate-200 bg-blue-50 text-blue-700">Total Geral</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-slate-700 text-sm" id="tableBody">
+                        <!-- Conteúdo será gerado dinamicamente -->
+                    </tbody>
+                    <tfoot>
+                        <tr class="bg-slate-100 text-slate-900 font-black text-base">
+                            <td class="py-4 px-6 uppercase text-sm">Totais (R$)</td>
+                            <td class="py-4 px-4 text-right border-l border-slate-200 text-orange-700" id="tabRedeTotal">R$ 0,00</td>
+                            <td class="py-4 px-4 text-right border-l border-slate-200 text-teal-700" id="tabPagBankTotal">R$ 0,00</td>
+                            <td class="py-4 px-4 text-right border-l border-slate-200 text-purple-700" id="tabNubankTotal">R$ 0,00</td>
+                            <td class="py-4 px-4 text-right border-l border-slate-200 text-emerald-600 bg-blue-100/50" id="tabTotalGeral">R$ 0,00</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+        
+        <div class="text-center pb-12">
+            <button onclick="limparTudo()" class="text-slate-400 hover:text-red-500 text-sm font-medium transition-colors flex items-center justify-center gap-2 mx-auto px-4 py-2 rounded-full hover:bg-red-50">
+                <i data-lucide="trash-2" class="w-4 h-4"></i> Limpar Todos os Dados e Recomeçar
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // Estrutura de chaves base (Atualizado com Pix Maquininha/QR Code e Pix Chave)
+        const baseState = () => ({
+            credito_master: 0, credito_visa: 0, credito_elo: 0, credito_outros: 0,
+            debito_master: 0, debito_visa: 0, debito_elo: 0, debito_outros: 0,
+            pix_qrcode: 0, pix_chave: 0, pix_outros: 0,
+            outros: 0, total: 0
+        });
+
+        // Estado Global
+        let state = {
+            rede: baseState(),
+            pagbank: baseState(),
+            nubank: baseState()
+        };
+
+        const formatBR = (valor) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
+
+        const parseNumberBR = (val) => {
+            if (typeof val === 'number') return val;
+            if (!val) return 0;
+            let str = val.toString().trim().replace(/[R$\s]/gi, '');
+            if (str === '') return 0;
+            const lastComma = str.lastIndexOf(',');
+            const lastDot = str.lastIndexOf('.');
+            
+            if (lastComma > lastDot) str = str.replace(/\./g, '').replace(',', '.');
+            else if (lastDot > lastComma) str = str.replace(/,/g, '');
+            
+            const num = parseFloat(str);
+            return isNaN(num) ? 0 : num;
+        };
+
+        const cleanText = (txt) => {
+            if (!txt) return '';
+            return txt.toString().toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        };
+
+        // Renderiza as linhas da tabela
+        const renderTable = () => {
+            const groups = [
+                {
+                    id: 'credito',
+                    name: 'Crédito',
+                    color: 'text-blue-700 bg-blue-50/50',
+                    items: [
+                        { key: 'credito_master', label: 'Mastercard' },
+                        { key: 'credito_visa', label: 'Visa' },
+                        { key: 'credito_elo', label: 'Elo' },
+                        { key: 'credito_outros', label: 'Outras Bandeiras' }
+                    ]
+                },
+                {
+                    id: 'debito',
+                    name: 'Débito',
+                    color: 'text-purple-700 bg-purple-50/50',
+                    items: [
+                        { key: 'debito_master', label: 'Mastercard' },
+                        { key: 'debito_visa', label: 'Visa' },
+                        { key: 'debito_elo', label: 'Elo' },
+                        { key: 'debito_outros', label: 'Outras Bandeiras' }
+                    ]
+                },
+                {
+                    id: 'pix',
+                    name: 'Pix',
+                    color: 'text-teal-700 bg-teal-50/50',
+                    items: [
+                        { key: 'pix_qrcode', label: 'Pix Maquininha / QR Code' },
+                        { key: 'pix_chave', label: 'Pix Chave / Transferência' },
+                        { key: 'pix_outros', label: 'Outros Pix' }
+                    ]
+                },
+                {
+                    id: 'outros',
+                    name: 'Outras Modalidades',
+                    color: 'text-slate-700 bg-slate-100',
+                    items: [
+                        { key: 'outros', label: 'Não Identificados' }
+                    ]
+                }
+            ];
+
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            let grandTotalRede = 0;
+            let grandTotalPag = 0;
+            let grandTotalNu = 0;
+
+            groups.forEach(group => {
+                let subRede = 0, subPag = 0, subNu = 0;
+                let rowsHtml = '';
+
+                group.items.forEach(item => {
+                    const vRede = state.rede[item.key] || 0;
+                    const vPag = state.pagbank[item.key] || 0;
+                    const vNu = state.nubank[item.key] || 0;
+                    const totalRow = vRede + vPag + vNu;
+
+                    subRede += vRede;
+                    subPag += vPag;
+                    subNu += vNu;
+
+                    // Mostra a linha apenas se tiver valor em algum banco (limpeza visual)
+                    // Mas mantemos as linhas de crédito/débito/pix base sempre visiveis para referencia
+                    const hideZero = (totalRow === 0 && item.key.includes('outros')) ? 'hidden' : '';
+
+                    rowsHtml += `
+                        <tr class="border-b border-slate-100 hover:bg-slate-50 ${hideZero}">
+                            <td class="py-2 px-6 pl-10 font-medium text-slate-600 flex items-center gap-2 text-sm">
+                                <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> ${item.label}
+                            </td>
+                            <td class="py-2 px-4 text-right border-l border-slate-100 ${vRede > 0 ? '' : 'text-slate-300'}">${formatBR(vRede)}</td>
+                            <td class="py-2 px-4 text-right border-l border-slate-100 ${vPag > 0 ? '' : 'text-slate-300'}">${formatBR(vPag)}</td>
+                            <td class="py-2 px-4 text-right border-l border-slate-100 ${vNu > 0 ? '' : 'text-slate-300'}">${formatBR(vNu)}</td>
+                            <td class="py-2 px-4 text-right border-l border-slate-100 font-bold bg-slate-50/50">${formatBR(totalRow)}</td>
+                        </tr>
+                    `;
+                });
+
+                grandTotalRede += subRede;
+                grandTotalPag += subPag;
+                grandTotalNu += subNu;
+
+                // Linha de Cabeçalho do Grupo (Com subtotal)
+                const groupHeader = `
+                    <tr class="group-header ${group.color} font-bold text-sm">
+                        <td class="py-3 px-6 uppercase tracking-wider flex justify-between">
+                            <span>${group.name}</span>
+                        </td>
+                        <td class="py-3 px-4 text-right border-l border-white/40">${formatBR(subRede)}</td>
+                        <td class="py-3 px-4 text-right border-l border-white/40">${formatBR(subPag)}</td>
+                        <td class="py-3 px-4 text-right border-l border-white/40">${formatBR(subNu)}</td>
+                        <td class="py-3 px-4 text-right border-l border-white/40">${formatBR(subRede + subPag + subNu)}</td>
+                    </tr>
+                `;
+
+                tbody.innerHTML += groupHeader + rowsHtml;
+            });
+
+            // Totais Finais
+            state.rede.total = grandTotalRede;
+            state.pagbank.total = grandTotalPag;
+            state.nubank.total = grandTotalNu;
+            
+            const somaFinal = grandTotalRede + grandTotalPag + grandTotalNu;
+
+            document.getElementById('tabRedeTotal').innerText = formatBR(grandTotalRede);
+            document.getElementById('tabPagBankTotal').innerText = formatBR(grandTotalPag);
+            document.getElementById('tabNubankTotal').innerText = formatBR(grandTotalNu);
+            document.getElementById('tabTotalGeral').innerText = formatBR(somaFinal);
+
+            // Cards Superiores
+            document.getElementById('redeTotalCard').innerText = formatBR(grandTotalRede);
+            document.getElementById('pagbankTotalCard').innerText = formatBR(grandTotalPag);
+            document.getElementById('nubankTotalCard').innerText = formatBR(grandTotalNu);
+            document.getElementById('grandTotal').innerText = formatBR(somaFinal);
+        };
+
+        // ==========================
+        // LEITORES DE ARQUIVO
+        // ==========================
+
+        const handleFileRead = (fileId, bankName, logicCallback) => {
+            document.getElementById(fileId).addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                document.getElementById(`${fileId}Name`).innerText = file.name;
+                document.getElementById(`${fileId.replace('File', 'Loading')}`).classList.remove('hidden');
+                
+                state[bankName] = baseState(); // Reseta estado do banco
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, {type: 'array'});
+                        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                        const rows = XLSX.utils.sheet_to_json(firstSheet, {header: 1, defval: ""});
+                        
+                        logicCallback(rows, bankName);
+                        renderTable();
+                    } catch (error) {
+                        console.error(error);
+                        alert(`Ocorreu um erro ao processar o arquivo do ${bankName.toUpperCase()}.`);
+                    } finally {
+                        document.getElementById(`${fileId.replace('File', 'Loading')}`).classList.add('hidden');
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            });
+        };
+
+        // 1. Lógica Itaú Rede
+        handleFileRead('redeFile', 'rede', (rows, bank) => {
+            let isHeaderFound = false;
+            let indices = { valor: -1, mod: -1, status: -1, band: -1, meio: -1 };
+
+            for (let row of rows) {
+                if (!isHeaderFound) {
+                    const rowText = cleanText(row.join(' '));
+                    if (rowText.includes('modalidade') || rowText.includes('valor da venda original')) {
+                        indices.valor = row.findIndex(c => cleanText(c).includes('valor da venda original') || cleanText(c) === 'valor');
+                        if (indices.valor === -1) indices.valor = row.findIndex(c => cleanText(c).includes('valor da venda'));
+                        indices.mod = row.findIndex(c => cleanText(c).includes('modalidade') || cleanText(c).includes('tipo de produto'));
+                        indices.status = row.findIndex(c => cleanText(c).includes('status'));
+                        indices.band = row.findIndex(c => cleanText(c).includes('bandeira'));
+                        indices.meio = row.findIndex(c => cleanText(c).includes('meio de pagamento') || cleanText(c).includes('tipo de maquininha'));
+                        if (indices.valor !== -1) isHeaderFound = true;
+                    }
+                    continue;
+                }
+
+                if (isHeaderFound && row[indices.valor]) {
+                    const status = indices.status !== -1 ? cleanText(row[indices.status]) : '';
+                    if (status.includes('negada') || status.includes('cancelada') || status.includes('desfeita') || status.includes('rejeitada')) continue;
+
+                    const valor = parseNumberBR(row[indices.valor]);
+                    if (valor === 0) continue;
+
+                    const mod = indices.mod !== -1 ? cleanText(row[indices.mod]) : '';
+                    const band = indices.band !== -1 ? cleanText(row[indices.band]) : '';
+
+                    if (mod.includes('credito')) {
+                        if (band.includes('master')) state[bank].credito_master += valor;
+                        else if (band.includes('visa')) state[bank].credito_visa += valor;
+                        else if (band.includes('elo')) state[bank].credito_elo += valor;
+                        else state[bank].credito_outros += valor;
+                    } else if (mod.includes('debito')) {
+                        if (band.includes('master')) state[bank].debito_master += valor;
+                        else if (band.includes('visa')) state[bank].debito_visa += valor;
+                        else if (band.includes('elo')) state[bank].debito_elo += valor;
+                        else state[bank].debito_outros += valor;
+                    } else if (mod.includes('pix')) {
+                        // Na Rede (Maquininha/TEF), todo PIX é via QR Code/Maquininha
+                        state[bank].pix_qrcode += valor;
+                    } else {
+                        state[bank].outros += valor;
+                    }
+                }
+            }
+            if(!isHeaderFound) alert("Colunas de valor não encontradas na Rede.");
+        });
+
+        // 2. Lógica PagBank
+        handleFileRead('pagbankFile', 'pagbank', (rows, bank) => {
+            let isHeaderFound = false;
+            let indices = { entradas: -1, tipo: -1, desc: -1 };
+
+            for (let row of rows) {
+                if (!isHeaderFound) {
+                    indices.entradas = row.findIndex(c => cleanText(c).includes('entradas') || cleanText(c).includes('valor'));
+                    indices.tipo = row.findIndex(c => cleanText(c) === 'tipo');
+                    indices.desc = row.findIndex(c => cleanText(c).includes('descrica'));
+                    if (indices.entradas !== -1) isHeaderFound = true;
+                    continue;
+                }
+
+                if (isHeaderFound && row[indices.entradas]) {
+                    const tipo = indices.tipo !== -1 ? cleanText(row[indices.tipo]) : '';
+                    const desc = indices.desc !== -1 ? cleanText(row[indices.desc]) : '';
+                    const textoTotal = tipo + " " + desc;
+
+                    // Ignorar Saídas se houver
+                    if (textoTotal.includes('enviado') || textoTotal.includes('retirada') || textoTotal.includes('saque') || textoTotal.includes('transferencia enviada')) continue;
+
+                    const valor = parseNumberBR(row[indices.entradas]);
+                    if (valor > 0) {
+                        
+                        // Lógica especificada para o PagBank:
+                        if (textoTotal.includes('vendas') && textoTotal.includes('disponivel pix')) {
+                            // Pagbank: Quando é QR code vem como Vendas e "Disponivel PIX"
+                            state[bank].pix_qrcode += valor;
+                        } 
+                        else if (textoTotal.includes('pix recebido')) {
+                            // Pagbank: Quando é Pix chave vem "Pix recebido" e nome da pessoa
+                            state[bank].pix_chave += valor;
+                        } 
+                        else if (textoTotal.includes('credito')) {
+                            if (textoTotal.includes('master')) state[bank].credito_master += valor;
+                            else if (textoTotal.includes('visa')) state[bank].credito_visa += valor;
+                            else if (textoTotal.includes('elo')) state[bank].credito_elo += valor;
+                            else state[bank].credito_outros += valor;
+                        } 
+                        else if (textoTotal.includes('debito')) {
+                            if (textoTotal.includes('master')) state[bank].debito_master += valor;
+                            else if (textoTotal.includes('visa')) state[bank].debito_visa += valor;
+                            else if (textoTotal.includes('elo')) state[bank].debito_elo += valor;
+                            else state[bank].debito_outros += valor;
+                        } 
+                        else if (textoTotal.includes('pix')) {
+                            // Fallback caso apareça algum pix diferente do esperado
+                            state[bank].pix_outros += valor;
+                        }
+                        else {
+                            state[bank].outros += valor;
+                        }
+                    }
+                }
+            }
+            if(!isHeaderFound) alert("Coluna de 'Entradas' não encontrada no PagBank.");
+        });
+
+        // 3. Lógica Nubank
+        handleFileRead('nubankFile', 'nubank', (rows, bank) => {
+            let isHeaderFound = false;
+            let idxValor = -1;
+
+            for (let row of rows) {
+                if (!isHeaderFound) {
+                    idxValor = row.findIndex(c => cleanText(c) === 'valor' || cleanText(c).includes('entradas'));
+                    if (idxValor !== -1) isHeaderFound = true;
+                    continue;
+                }
+
+                if (isHeaderFound && row[idxValor]) {
+                    // Em vez de buscar o cabeçalho 'Descrição' (que pode vir quebrado como 'DescriÃ§Ã£o'),
+                    // juntamos todo o conteúdo da linha. Isso garante que não vamos perder o texto da venda!
+                    const textoTotal = row.join(' ').toLowerCase();
+
+                    const valorRaw = row[idxValor];
+                    const valor = parseNumberBR(valorRaw);
+                    
+                    if (valor > 0 && !textoTotal.includes('pagamento') && !textoTotal.includes('enviad') && !textoTotal.includes('saída')) {
+                        
+                        // Procuramos 'pix', 'recebida' ou 'transfer' direto no texto total da linha
+                        if (textoTotal.includes('pix') || textoTotal.includes('recebida') || textoTotal.includes('transfer')) {
+                            state[bank].pix_chave += valor;
+                        } else if (textoTotal.includes('credito') || textoTotal.includes('cartao') || textoTotal.includes('cartã')) {
+                            if (textoTotal.includes('master')) state[bank].credito_master += valor;
+                            else if (textoTotal.includes('visa')) state[bank].credito_visa += valor;
+                            else if (textoTotal.includes('elo')) state[bank].credito_elo += valor;
+                            else state[bank].credito_outros += valor;
+                        } else {
+                            state[bank].outros += valor;
+                        }
+                    }
+                }
+            }
+            if(!isHeaderFound) alert("Coluna de 'Valor' não encontrada no extrato Nubank.");
+        });
+
+        // Função de Limpeza Total
+        function limparTudo() {
+            state.rede = baseState();
+            state.pagbank = baseState();
+            state.nubank = baseState();
+            
+            document.getElementById('redeFile').value = '';
+            document.getElementById('pagbankFile').value = '';
+            document.getElementById('nubankFile').value = '';
+            
+            document.getElementById('redeFileName').innerText = 'Arquivo Rede';
+            document.getElementById('pagbankFileName').innerText = 'Arquivo PagBank';
+            document.getElementById('nubankFileName').innerText = 'Arquivo Nubank';
+            
+            renderTable();
+        }
+
+        // Primeira carga zera e pinta a tabela
+        renderTable();
+    </script>
+</body>
+</html>
