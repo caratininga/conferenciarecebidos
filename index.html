@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acerto de Caixa - Caratininga</title>
-    <!-- Configuração do Tailwind para permitir o modo escuro manual -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -12,11 +11,7 @@
             theme: {
                 extend: {
                     colors: {
-                        slate: {
-                            850: '#151e2e',
-                            900: '#0f172a',
-                            950: '#020617',
-                        }
+                        slate: { 850: '#151e2e', 900: '#0f172a', 950: '#020617' }
                     }
                 }
             }
@@ -27,34 +22,13 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .file-input-wrapper { position: relative; overflow: hidden; display: inline-block; }
-        .file-input-wrapper input[type=file] {
-            font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; height: 100%;
-        }
+        .file-input-wrapper input[type=file] { font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; height: 100%; }
         tbody tr:not(.group-header) { transition: background-color 0.2s; }
         .group-header td { border-top: 2px solid #e2e8f0; }
         .dark .group-header td { border-top: 2px solid #334155; }
-        
-        /* Grid do Calendário Compacto para 4 colunas */
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, minmax(0, 1fr));
-            gap: 2px;
-            text-align: center;
-        }
-        .day-box {
-            aspect-ratio: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 0.375rem;
-            font-size: 0.75rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.15s ease-in-out;
-        }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; text-align: center; }
+        .day-box { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.15s ease-in-out; }
         .day-box.empty { background-color: transparent !important; cursor: default; border: none !important; }
-        
-        /* Oculta scrollbar mas permite rolar nas tabelas caso tela pequena */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
         .dark ::-webkit-scrollbar-track { background: #0f172a; }
@@ -62,21 +36,25 @@
         .dark ::-webkit-scrollbar-thumb { background: #334155; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         .dark ::-webkit-scrollbar-thumb:hover { background: #475569; }
-    </style>
-    
-    <!-- Script inicial do Tema -->
-    <script>
-        if (localStorage.getItem('theme') === 'light') {
-            document.documentElement.classList.remove('dark');
-        } else {
-            // Padrão será dark, caso não tenha preferência salva
-            document.documentElement.classList.add('dark');
+        /* Campos de input manuais da tabela */
+        .table-input {
+            width: 100%; min-width: 80px; text-align: right; padding: 4px 8px; border-radius: 6px; outline: none;
+            background-color: transparent; border: 1px solid transparent; transition: all 0.2s;
         }
+        .table-input:hover { border-color: #cbd5e1; background-color: #f8fafc; }
+        .dark .table-input:hover { border-color: #475569; background-color: #1e293b; }
+        .table-input:focus { border-color: #3b82f6; background-color: #ffffff; box-shadow: 0 0 0 2px rgba(59,130,246,0.1); }
+        .dark .table-input:focus { border-color: #3b82f6; background-color: #0f172a; box-shadow: 0 0 0 2px rgba(59,130,246,0.2); }
+        .table-input.has-value { font-weight: bold; color: #0284c7; }
+        .dark .table-input.has-value { color: #38bdf8; }
+    </style>
+    <script>
+        if (localStorage.getItem('theme') === 'light') document.documentElement.classList.remove('dark');
+        else document.documentElement.classList.add('dark');
     </script>
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 min-h-screen text-slate-800 dark:text-slate-200 relative transition-colors duration-200">
 
-    <!-- Botão Fixo Alternar Tema -->
     <button onclick="toggleTheme()" class="fixed top-4 right-4 z-50 p-2.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors shadow-sm focus:outline-none border border-slate-300 dark:border-slate-700">
         <i data-lucide="moon" class="w-5 h-5 hidden dark:block"></i>
         <i data-lucide="sun" class="w-5 h-5 block dark:hidden"></i>
@@ -125,13 +103,12 @@
         </div>
     </div>
 
-    <!-- TELA 1: DASHBOARD DE UNIDADES COM CALENDÁRIO -->
+    <!-- TELA 1: DASHBOARD DE UNIDADES -->
     <div id="dashboardScreen" class="hidden min-h-screen p-4 w-full max-w-[1600px] mx-auto flex flex-col pt-8">
         <header class="text-center mb-8">
             <h1 class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-2">Painel de Fechamentos</h1>
             <p class="text-slate-500 dark:text-slate-400">Selecione o dia na unidade correspondente para iniciar a conferência.</p>
             
-            <!-- Legenda das Cores adaptada para o modo escuro -->
             <div class="flex flex-wrap items-center justify-center gap-4 mt-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
                 <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-red-100 dark:bg-red-500/20 border border-red-300 dark:border-red-500/50 block"></span> Pendente</span>
                 <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-emerald-100 dark:bg-emerald-500/20 border border-emerald-300 dark:border-emerald-500/50 block"></span> Salvo</span>
@@ -147,7 +124,6 @@
             </div>
         </header>
 
-        <!-- Container de Cards -->
         <div class="w-full">
             <div id="cardsContainer" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6"></div>
         </div>
@@ -181,12 +157,11 @@
             </div>
 
             <div class="text-right w-full lg:w-auto bg-slate-800 dark:bg-black/50 text-white px-6 py-2 rounded-xl shadow-inner border border-transparent dark:border-slate-800">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Consolidado</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Final Computado</p>
                 <p id="grandTotal" class="text-2xl font-black text-emerald-400">R$ 0,00</p>
             </div>
         </div>
 
-        <!-- Alerta de Dados Recuperados -->
         <div id="dadosRecuperadosAlert" class="hidden mb-6 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 text-blue-800 dark:text-blue-300 px-4 py-3 rounded-xl flex items-center gap-3 shadow-sm">
             <i data-lucide="check-circle-2" class="w-6 h-6 text-blue-500 dark:text-blue-400 shrink-0"></i>
             <div>
@@ -195,16 +170,21 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8" id="fileCardsContainer">
-            <!-- Cards de Envio de Arquivos (As cores serão preenchidas no JS para gerenciar o Dark Mode corretamente) -->
+        <!-- Cards de Envio -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8" id="fileCardsContainer"></div>
+
+        <!-- CONTROLES DE ABAS (TABS) -->
+        <div class="flex gap-2 mb-4 border-b border-slate-200 dark:border-slate-800 overflow-x-auto">
+            <button onclick="setTab('planilhas')" id="tabBtnPlanilhas" class="py-3 px-6 font-bold text-sm border-b-2 transition-colors border-blue-500 text-blue-600 dark:text-blue-400">Modo Planilhas</button>
+            <button onclick="setTab('conferencia')" id="tabBtnConferencia" class="py-3 px-6 font-bold text-sm border-b-2 transition-colors border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200">Modo Conferência</button>
         </div>
 
-        <!-- Tabela -->
-        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden mb-8 transition-colors">
+        <!-- ABA 1: MODO PLANILHAS (Visão Agrupada Clássica) -->
+        <div id="viewPlanilhas" class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden mb-8 transition-colors">
             <div class="bg-slate-800 dark:bg-black/40 border-b dark:border-slate-800 p-4 text-white flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                    <i data-lucide="table-properties" class="text-blue-400"></i>
-                    <h3 class="text-lg font-bold">Resumo Detalhado</h3>
+                    <i data-lucide="pie-chart" class="text-blue-400"></i>
+                    <h3 class="text-lg font-bold">Resumo por Grupos (Planilhas)</h3>
                 </div>
             </div>
             
@@ -212,21 +192,59 @@
                 <table class="w-full text-left border-collapse min-w-[700px]">
                     <thead>
                         <tr class="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider">
-                            <th class="py-3 px-6 font-semibold w-1/4">Categoria / Bandeira</th>
+                            <th class="py-3 px-6 font-semibold w-1/4">Categoria Agrupada</th>
                             <th class="py-3 px-4 font-semibold text-right border-l border-slate-200 dark:border-slate-700">Itaú Rede</th>
                             <th class="py-3 px-4 font-semibold text-right border-l border-slate-200 dark:border-slate-700">PagBank</th>
                             <th class="py-3 px-4 font-semibold text-right border-l border-slate-200 dark:border-slate-700">Nubank</th>
-                            <th class="py-3 px-4 font-semibold text-right border-l border-slate-200 dark:border-slate-700 bg-blue-50/50 dark:bg-blue-500/5 text-blue-700 dark:text-blue-400">Total Geral</th>
+                            <th class="py-3 px-4 font-semibold text-right border-l border-slate-200 dark:border-slate-700 bg-blue-50/50 dark:bg-blue-500/5 text-blue-700 dark:text-blue-400">Subtotal Bancos</th>
                         </tr>
                     </thead>
-                    <tbody class="text-slate-700 dark:text-slate-300 text-sm" id="tableBody"></tbody>
+                    <tbody class="text-slate-700 dark:text-slate-300 text-sm" id="tableBodyPlanilhas"></tbody>
                     <tfoot>
                         <tr class="bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white font-black text-base border-t border-slate-200 dark:border-slate-800">
-                            <td class="py-4 px-6 uppercase text-sm">Soma Final</td>
+                            <td class="py-4 px-6 uppercase text-sm">Soma Lida</td>
                             <td class="py-4 px-4 text-right border-l border-slate-200 dark:border-slate-800 text-orange-700 dark:text-orange-400" id="tabRedeTotal">R$ 0,00</td>
                             <td class="py-4 px-4 text-right border-l border-slate-200 dark:border-slate-800 text-teal-700 dark:text-teal-400" id="tabPagBankTotal">R$ 0,00</td>
                             <td class="py-4 px-4 text-right border-l border-slate-200 dark:border-slate-800 text-purple-700 dark:text-purple-400" id="tabNubankTotal">R$ 0,00</td>
                             <td class="py-4 px-4 text-right border-l border-slate-200 dark:border-slate-800 text-emerald-600 dark:text-emerald-400 bg-blue-100/50 dark:bg-blue-900/20" id="tabTotalGeral">R$ 0,00</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <!-- ABA 2: MODO CONFERÊNCIA (Visão Colibri Completa) -->
+        <div id="viewConferencia" class="hidden bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden mb-8 transition-colors">
+            <div class="bg-slate-800 dark:bg-black/40 border-b dark:border-slate-800 p-4 text-white flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="list-checks" class="text-emerald-400"></i>
+                    <h3 class="text-lg font-bold">Conferência Analítica (Espelho Colibri)</h3>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse min-w-[900px]">
+                    <thead>
+                        <tr class="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-[11px] uppercase tracking-wider">
+                            <th class="py-3 px-4 font-semibold w-1/5">Categoria Colibri</th>
+                            <th class="py-3 px-3 font-semibold text-right border-l border-slate-200 dark:border-slate-700 text-orange-600 dark:text-orange-400">Itaú Rede</th>
+                            <th class="py-3 px-3 font-semibold text-right border-l border-slate-200 dark:border-slate-700 text-teal-600 dark:text-teal-400">PagBank</th>
+                            <th class="py-3 px-3 font-semibold text-right border-l border-slate-200 dark:border-slate-700 text-purple-600 dark:text-purple-400">Nubank</th>
+                            <th class="py-3 px-3 font-semibold text-right border-l border-slate-200 dark:border-slate-700 bg-amber-50 dark:bg-amber-900/10 text-amber-700 dark:text-amber-500">Valor Manual</th>
+                            <th class="py-3 px-3 font-semibold text-right border-l border-slate-200 dark:border-slate-700 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400">Total (Bancos+Manual)</th>
+                            <th class="py-3 px-3 font-semibold text-right border-l border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-950 text-slate-700 dark:text-slate-400">Fechamento Colibri</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-slate-700 dark:text-slate-300 text-sm font-medium" id="tableBodyConferencia"></tbody>
+                    <tfoot>
+                        <tr class="bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white font-black text-sm border-t border-slate-200 dark:border-slate-800">
+                            <td class="py-4 px-4 uppercase">Totais Gerais</td>
+                            <td class="py-4 px-3 text-right border-l border-slate-200 dark:border-slate-800 text-orange-700 dark:text-orange-400" id="confRedeTotal">R$ 0,00</td>
+                            <td class="py-4 px-3 text-right border-l border-slate-200 dark:border-slate-800 text-teal-700 dark:text-teal-400" id="confPagBankTotal">R$ 0,00</td>
+                            <td class="py-4 px-3 text-right border-l border-slate-200 dark:border-slate-800 text-purple-700 dark:text-purple-400" id="confNubankTotal">R$ 0,00</td>
+                            <td class="py-4 px-3 text-right border-l border-slate-200 dark:border-slate-800 text-amber-700 dark:text-amber-500" id="confManualTotal">R$ 0,00</td>
+                            <td class="py-4 px-3 text-right border-l border-slate-200 dark:border-slate-800 text-emerald-600 dark:text-emerald-400 bg-blue-100/50 dark:bg-blue-900/20 text-base" id="confTotalGeral">R$ 0,00</td>
+                            <td class="py-4 px-3 text-right border-l border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-base" id="confColibriTotal">R$ 0,00</td>
                         </tr>
                     </tfoot>
                 </table>
@@ -283,35 +301,43 @@
             { id: 'Tianguá', nome: 'Tianguá', icon: 'map', color: 'purple' }
         ];
 
-        // Rastreamento dos meses dos calendários
         const calendarState = {};
         const todayObj = new Date();
-        unidadesInfo.forEach(u => {
-            calendarState[u.id] = { month: todayObj.getMonth(), year: todayObj.getFullYear() };
-        });
+        unidadesInfo.forEach(u => { calendarState[u.id] = { month: todayObj.getMonth(), year: todayObj.getFullYear() }; });
 
-        // Alternância de Tema
         window.toggleTheme = () => {
             if (document.documentElement.classList.contains('dark')) {
-                document.documentElement.classList.remove('dark');
-                localStorage.setItem('theme', 'light');
+                document.documentElement.classList.remove('dark'); localStorage.setItem('theme', 'light');
             } else {
-                document.documentElement.classList.add('dark');
-                localStorage.setItem('theme', 'dark');
+                document.documentElement.classList.add('dark'); localStorage.setItem('theme', 'dark');
             }
         };
 
-        // Renderização dos Cards de Upload (Feito no JS para garantir as cores dark corretas do Tailwind)
+        window.setTab = (tabName) => {
+            const btnP = document.getElementById('tabBtnPlanilhas');
+            const btnC = document.getElementById('tabBtnConferencia');
+            const viewP = document.getElementById('viewPlanilhas');
+            const viewC = document.getElementById('viewConferencia');
+
+            if(tabName === 'planilhas') {
+                btnP.className = "py-3 px-6 font-bold text-sm border-b-2 transition-colors border-blue-500 text-blue-600 dark:text-blue-400";
+                btnC.className = "py-3 px-6 font-bold text-sm border-b-2 transition-colors border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200";
+                viewP.classList.remove('hidden'); viewC.classList.add('hidden');
+            } else {
+                btnC.className = "py-3 px-6 font-bold text-sm border-b-2 transition-colors border-emerald-500 text-emerald-600 dark:text-emerald-400";
+                btnP.className = "py-3 px-6 font-bold text-sm border-b-2 transition-colors border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200";
+                viewC.classList.remove('hidden'); viewP.classList.add('hidden');
+            }
+        };
+
         const renderUploadCards = () => {
             const container = document.getElementById('fileCardsContainer');
             if(!container) return;
-            
             const banks = [
                 { id: 'rede', name: 'Itaú Rede', icon: 'credit-card', color: 'orange' },
                 { id: 'pagbank', name: 'PagBank', icon: 'smartphone', color: 'teal' },
                 { id: 'nubank', name: 'Nubank', icon: 'building-2', color: 'purple' }
             ];
-
             container.innerHTML = banks.map(b => `
                 <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-5 flex flex-col relative overflow-hidden group hover:border-${b.color}-300 dark:hover:border-${b.color}-500/50 transition-colors">
                     <div class="absolute top-0 right-0 w-24 h-24 bg-${b.color}-50 dark:bg-${b.color}-500/5 rounded-bl-full -z-10"></div>
@@ -321,7 +347,6 @@
                         </div>
                         <h2 class="text-lg font-bold text-slate-800 dark:text-white">${b.name}</h2>
                     </div>
-                    
                     <div class="file-input-wrapper w-full mb-2">
                         <button class="w-full flex items-center justify-center gap-2 bg-${b.color}-50 dark:bg-${b.color}-500/10 hover:bg-${b.color}-100 dark:hover:bg-${b.color}-500/20 text-${b.color}-700 dark:text-${b.color}-400 border border-${b.color}-200 dark:border-${b.color}-500/30 border-dashed py-3 rounded-xl font-medium transition-colors text-sm">
                             <i data-lucide="upload-cloud" class="w-4 h-4"></i> <span id="${b.id}FileName" class="truncate max-w-[150px]">Enviar Arquivo</span>
@@ -329,7 +354,6 @@
                         <input type="file" id="${b.id}File" accept=".csv, .xlsx, .xls" />
                     </div>
                     <div id="${b.id}Loading" class="hidden text-center text-${b.color}-500 text-xs my-2 font-medium animate-pulse">Processando...</div>
-                    
                     <div class="mt-auto bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3 border border-slate-100 dark:border-slate-700 flex justify-between items-center">
                         <span class="text-slate-500 dark:text-slate-400 text-xs font-medium">Lido:</span>
                         <span id="${b.id}TotalCard" class="font-bold text-slate-700 dark:text-slate-200">R$ 0,00</span>
@@ -337,16 +361,11 @@
                 </div>
             `).join('');
             
-            // Re-anexar os event listeners após injetar o HTML
             handleFileRead('redeFile', 'rede', processRede);
             handleFileRead('pagbankFile', 'pagbank', processPagbank);
             handleFileRead('nubankFile', 'nubank', processNubank);
         };
 
-        // ==========================
-        // SISTEMA DE LOGIN E SEGURANÇA
-        // ==========================
-        
         const loginScreen = document.getElementById('loginScreen');
         const dashboardScreen = document.getElementById('dashboardScreen');
         const appScreen = document.getElementById('appScreen');
@@ -362,9 +381,7 @@
                     window.todasConferencias = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     renderAllCalendars(); 
                     if (currentUnit) window.verificarDadosSalvos(); 
-                }, (error) => {
-                    console.error("Erro no DB:", error);
-                });
+                }, (error) => { console.error("Erro no DB:", error); });
                 
                 renderAllCalendars();
                 renderUploadCards();
@@ -382,19 +399,14 @@
             const btn = document.getElementById('btnEntrar');
             const errorMsg = document.getElementById('loginError');
             btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Autenticando...';
-            btn.classList.add('opacity-80', 'cursor-not-allowed');
-            errorMsg.classList.add('hidden');
-            lucide.createIcons();
-
+            btn.classList.add('opacity-80', 'cursor-not-allowed'); errorMsg.classList.add('hidden'); lucide.createIcons();
             try {
                 await signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('senha').value);
                 document.getElementById('senha').value = '';
-            } catch (error) {
-                errorMsg.classList.remove('hidden');
-            } finally {
+            } catch (error) { errorMsg.classList.remove('hidden'); } 
+            finally {
                 btn.innerHTML = '<i data-lucide="log-in" class="w-5 h-5"></i> Entrar no Sistema';
-                btn.classList.remove('opacity-80', 'cursor-not-allowed');
-                lucide.createIcons();
+                btn.classList.remove('opacity-80', 'cursor-not-allowed'); lucide.createIcons();
             }
         });
 
@@ -403,18 +415,12 @@
             catch (error) { window.showToast("Erro ao sair.", "error"); }
         };
 
-        // ==========================
-        // LÓGICA DE CALENDÁRIO NO DASHBOARD
-        // ==========================
-
         const mesesNome = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
         const diasSemana = ["D", "S", "T", "Q", "Q", "S", "S"];
 
         window.changeMonth = (unitId, dir) => {
-            let s = calendarState[unitId];
-            s.month += dir;
-            if (s.month < 0) { s.month = 11; s.year--; }
-            else if (s.month > 11) { s.month = 0; s.year++; }
+            let s = calendarState[unitId]; s.month += dir;
+            if (s.month < 0) { s.month = 11; s.year--; } else if (s.month > 11) { s.month = 0; s.year++; }
             renderAllCalendars();
         }
 
@@ -422,9 +428,7 @@
             const container = document.getElementById('cardsContainer');
             if(!container) return;
             container.innerHTML = '';
-
-            const hj = new Date();
-            hj.setHours(0,0,0,0); 
+            const hj = new Date(); hj.setHours(0,0,0,0); 
 
             unidadesInfo.forEach(u => {
                 const cState = calendarState[u.id];
@@ -442,44 +446,25 @@
                 });
 
                 let daysHtml = '';
-                diasSemana.forEach(d => {
-                    daysHtml += `<div class="text-[10px] font-bold text-slate-400 dark:text-slate-500 py-1 uppercase">${d}</div>`;
-                });
-                for (let i = 0; i < firstDayIndex; i++) {
-                    daysHtml += `<div class="day-box empty"></div>`;
-                }
+                diasSemana.forEach(d => { daysHtml += `<div class="text-[10px] font-bold text-slate-400 dark:text-slate-500 py-1 uppercase">${d}</div>`; });
+                for (let i = 0; i < firstDayIndex; i++) daysHtml += `<div class="day-box empty"></div>`;
 
                 for (let i = 1; i <= lastDay; i++) {
                     const dataFormatada = `${cState.year}-${String(cState.month+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
-                    const dataDoLoop = new Date(cState.year, cState.month, i);
-                    dataDoLoop.setHours(0,0,0,0);
+                    const dataDoLoop = new Date(cState.year, cState.month, i); dataDoLoop.setHours(0,0,0,0);
                     const temDado = diasComDado[i];
                     
                     let classes = ''; let tooltip = ''; let bloqueado = false;
-
                     if (dataDoLoop > hj) {
                         classes = 'bg-slate-50 dark:bg-slate-800/50 text-slate-300 dark:text-slate-600 border border-slate-100 dark:border-slate-800 cursor-not-allowed opacity-50';
                         tooltip = 'Data futura'; bloqueado = true;
-                    } 
-                    else if (dataDoLoop.getTime() === hj.getTime()) {
-                        if (temDado) {
-                            classes = 'bg-teal-50 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 border border-teal-200 dark:border-teal-500/30 hover:bg-teal-100 dark:hover:bg-teal-500/30 font-bold'; 
-                            tooltip = 'Fechamento feito!';
-                        } else {
-                            classes = 'bg-blue-50 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/40 hover:bg-blue-100 dark:hover:bg-blue-500/30 font-bold shadow-sm'; 
-                            tooltip = 'Fazer fechamento hoje';
-                        }
-                    } 
-                    else {
-                        if (temDado) {
-                            classes = 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 hover:bg-emerald-100 dark:hover:bg-emerald-500/20'; 
-                            tooltip = 'Salvo';
-                        } else {
-                            classes = 'bg-red-50 dark:bg-red-500/10 text-red-500 dark:text-red-400 border border-red-200 dark:border-red-500/30 hover:bg-red-100 dark:hover:bg-red-500/20 shadow-sm'; 
-                            tooltip = 'Pendente';
-                        }
+                    } else if (dataDoLoop.getTime() === hj.getTime()) {
+                        if (temDado) { classes = 'bg-teal-50 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 border border-teal-200 dark:border-teal-500/30 hover:bg-teal-100 dark:hover:bg-teal-500/30 font-bold'; tooltip = 'Fechamento feito!'; } 
+                        else { classes = 'bg-blue-50 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/40 hover:bg-blue-100 dark:hover:bg-blue-500/30 font-bold shadow-sm'; tooltip = 'Fazer fechamento hoje'; }
+                    } else {
+                        if (temDado) { classes = 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 hover:bg-emerald-100 dark:hover:bg-emerald-500/20'; tooltip = 'Salvo'; } 
+                        else { classes = 'bg-red-50 dark:bg-red-500/10 text-red-500 dark:text-red-400 border border-red-200 dark:border-red-500/30 hover:bg-red-100 dark:hover:bg-red-500/20 shadow-sm'; tooltip = 'Pendente'; }
                     }
-
                     const clickAction = bloqueado ? '' : `onclick="abrirUnidadeNoDia('${u.id}', '${dataFormatada}')"`;
                     daysHtml += `<div ${clickAction} class="day-box ${classes}" title="${tooltip}">${i}</div>`;
                 }
@@ -496,17 +481,11 @@
                         </div>
                         <div class="p-3 lg:p-4 flex-1 flex flex-col">
                             <div class="flex items-center justify-between mb-3">
-                                <button onclick="changeMonth('${u.id}', -1)" class="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 dark:text-slate-400 transition-colors">
-                                    <i data-lucide="chevron-left" class="w-4 h-4"></i>
-                                </button>
+                                <button onclick="changeMonth('${u.id}', -1)" class="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 dark:text-slate-400 transition-colors"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
                                 <span class="font-bold text-slate-700 dark:text-slate-200 capitalize text-sm">${mesesNome[cState.month]} ${cState.year}</span>
-                                <button onclick="changeMonth('${u.id}', 1)" class="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 dark:text-slate-400 transition-colors">
-                                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
-                                </button>
+                                <button onclick="changeMonth('${u.id}', 1)" class="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 dark:text-slate-400 transition-colors"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
                             </div>
-                            <div class="calendar-grid flex-1">
-                                ${daysHtml}
-                            </div>
+                            <div class="calendar-grid flex-1">${daysHtml}</div>
                         </div>
                     </div>
                 `;
@@ -514,29 +493,16 @@
             lucide.createIcons();
         };
 
-        // ==========================
-        // LÓGICA DE NAVEGAÇÃO / WORKSPACE
-        // ==========================
-
         window.abrirUnidadeNoDia = (nomeUnidade, dataStr) => {
-            currentUnit = nomeUnidade;
-            document.getElementById('headerUnitName').innerText = nomeUnidade;
-            dashboardScreen.classList.add('hidden');
-            appScreen.classList.remove('hidden');
-
-            const dateInput = document.getElementById('dateSelector');
-            dateInput.type = 'date'; 
-            dateInput.value = dataStr;
-
+            currentUnit = nomeUnidade; document.getElementById('headerUnitName').innerText = nomeUnidade;
+            dashboardScreen.classList.add('hidden'); appScreen.classList.remove('hidden');
+            const dateInput = document.getElementById('dateSelector'); dateInput.type = 'date'; dateInput.value = dataStr;
             window.verificarDadosSalvos();
         };
 
         window.voltarParaDashboard = () => {
-            appScreen.classList.add('hidden');
-            dashboardScreen.classList.remove('hidden');
-            currentUnit = '';
-            window.limparTudo(false); 
-            renderAllCalendars(); 
+            appScreen.classList.add('hidden'); dashboardScreen.classList.remove('hidden');
+            currentUnit = ''; window.limparTudo(false); renderAllCalendars(); 
         };
 
         window.verificarDadosSalvos = () => {
@@ -544,14 +510,16 @@
             const refDate = document.getElementById('dateSelector').value;
             if (!refDate) return;
 
-            const registroEncontrado = window.todasConferencias.find(doc => 
-                doc.unidade === currentUnit && doc.referencia === refDate
-            );
+            const registroEncontrado = window.todasConferencias.find(doc => doc.unidade === currentUnit && doc.referencia === refDate);
 
             if (registroEncontrado) {
                 currentRecordId = registroEncontrado.id;
                 state = JSON.parse(JSON.stringify(registroEncontrado.detalhado)); 
                 
+                // Garantir que registros antigos tenham o novo objeto state.manual e state.colibri como baseState() numérico
+                if(!state.manual) state.manual = baseState();
+                if(!state.colibri) state.colibri = baseState();
+
                 document.getElementById('dadosRecuperadosAlert').classList.remove('hidden');
                 document.getElementById('redeFileName').innerText = '✔ Arquivo Salvo';
                 document.getElementById('pagbankFileName').innerText = '✔ Arquivo Salvo';
@@ -566,17 +534,41 @@
             }
         };
 
-        // ==========================
-        // UTILITÁRIOS E CÁLCULO
-        // ==========================
-        
+        lucide.createIcons();
+
+        window.showToast = (message, type = 'error') => {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            toastMsg.textContent = message;
+            toast.className = `fixed bottom-4 right-4 px-6 py-4 rounded-xl text-white font-bold shadow-2xl transition-all duration-300 transform z-50 flex items-center gap-3 ${type === 'success' ? 'bg-emerald-500' : 'bg-red-500'}`;
+            toast.classList.remove('translate-y-10', 'opacity-0', 'pointer-events-none');
+            setTimeout(() => toast.classList.add('translate-y-10', 'opacity-0', 'pointer-events-none'), 4000);
+        };
+
+        // NOVO BASE STATE: Abrange todas as categorias específicas solicitadas
         const baseState = () => ({
-            credito_master: 0, credito_visa: 0, credito_elo: 0, credito_outros: 0,
-            debito_master: 0, debito_visa: 0, debito_elo: 0, debito_outros: 0,
-            pix_qrcode: 0, pix_chave: 0, pix_outros: 0, outros: 0, total: 0
+            ai_que_fome: 0, alelo: 0, amex_credito: 0, boleto: 0, conta_assinada: 0, credito_cliente: 0, dinheiro: 0,
+            elo_credito: 0, elo_debito: 0, hipercard_credito: 0, ifood: 0, master_credito: 0, master_debito: 0,
+            pix_bb: 0, pix_chave: 0, pix_maquina: 0, sinal: 0, sodexo: 0, syspro: 0,
+            tef_credito: 0, tef_debito: 0, tef_voucher: 0, ticket: 0, visa_credito: 0, visa_debito: 0,
+            outros: 0, total: 0
         });
 
-        let state = { rede: baseState(), pagbank: baseState(), nubank: baseState() };
+        // Agora colibri também tem o baseState() para armazenar números que podem ser somados
+        let state = { rede: baseState(), pagbank: baseState(), nubank: baseState(), manual: baseState(), colibri: baseState() };
+
+        // Categorias Extensas (Ordem alfabética do Colibri)
+        const categoriasConferencia = [
+            { id: 'ai_que_fome', label: 'Ai Que Fome' }, { id: 'alelo', label: 'Alelo' }, { id: 'amex_credito', label: 'Amex Credito' },
+            { id: 'boleto', label: 'Boleto' }, { id: 'conta_assinada', label: 'Conta Assinada' }, { id: 'credito_cliente', label: 'Credito Cliente' },
+            { id: 'dinheiro', label: 'Dinheiro' }, { id: 'elo_credito', label: 'Elo Credito' }, { id: 'elo_debito', label: 'Elo Debito' },
+            { id: 'hipercard_credito', label: 'Hipercard Credito' }, { id: 'ifood', label: 'Ifood' }, { id: 'master_credito', label: 'Master Credito' },
+            { id: 'master_debito', label: 'Master Debito' }, { id: 'pix_bb', label: 'Pix Bb' }, { id: 'pix_chave', label: 'Pix Chave' },
+            { id: 'pix_maquina', label: 'Pix Maquina' }, { id: 'sinal', label: 'Sinal' }, { id: 'sodexo', label: 'Sodexo' },
+            { id: 'syspro', label: 'Syspro' }, { id: 'tef_credito', label: 'Tef Credito' }, { id: 'tef_debito', label: 'Tef Debito' },
+            { id: 'tef_voucher', label: 'Tef Voucher' }, { id: 'ticket', label: 'Ticket' }, { id: 'visa_credito', label: 'Visa Credito' },
+            { id: 'visa_debito', label: 'Visa Debito' }, { id: 'outros', label: 'Outros (Não Mapeado)' }
+        ];
 
         const formatBR = (valor) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
         const parseNumberBR = (val) => {
@@ -584,67 +576,136 @@
             if (!val) return 0;
             let str = val.toString().trim().replace(/[R$\s]/gi, '');
             if (str === '') return 0;
-            const lastComma = str.lastIndexOf(',');
-            const lastDot = str.lastIndexOf('.');
+            const lastComma = str.lastIndexOf(','); const lastDot = str.lastIndexOf('.');
             if (lastComma > lastDot) str = str.replace(/\./g, '').replace(',', '.');
             else if (lastDot > lastComma) str = str.replace(/,/g, '');
-            const num = parseFloat(str);
-            return isNaN(num) ? 0 : num;
+            const num = parseFloat(str); return isNaN(num) ? 0 : num;
         };
         const cleanText = (txt) => {
             if (!txt) return '';
             return txt.toString().toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
         };
 
+        window.updateManualValue = (key, val) => {
+            state.manual[key] = parseNumberBR(val);
+            renderTable(); // Re-calcula os totais e formata
+        };
+
+        // Agora Colibri também é atualizado como número para poder ser formatado bonitinho (R$ 0,00)
+        window.updateColibriValue = (key, val) => {
+            state.colibri[key] = parseNumberBR(val);
+            renderTable(); 
+        };
+
         const renderTable = () => {
-            const groups = [
-                { id: 'credito', name: 'Crédito', color: 'text-blue-700 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10', items: [{ key: 'credito_master', label: 'Mastercard' }, { key: 'credito_visa', label: 'Visa' }, { key: 'credito_elo', label: 'Elo' }, { key: 'credito_outros', label: 'Outras Bandeiras' }] },
-                { id: 'debito', name: 'Débito', color: 'text-purple-700 dark:text-purple-400 bg-purple-50/50 dark:bg-purple-900/10', items: [{ key: 'debito_master', label: 'Mastercard' }, { key: 'debito_visa', label: 'Visa' }, { key: 'debito_elo', label: 'Elo' }, { key: 'debito_outros', label: 'Outras Bandeiras' }] },
-                { id: 'pix', name: 'Pix', color: 'text-teal-700 dark:text-teal-400 bg-teal-50/50 dark:bg-teal-900/10', items: [{ key: 'pix_qrcode', label: 'Pix Maquininha / QR Code' }, { key: 'pix_chave', label: 'Pix Chave / Transferência' }, { key: 'pix_outros', label: 'Outros Pix' }] },
-                { id: 'outros', name: 'Outras Modalidades', color: 'text-slate-700 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80', items: [{ key: 'outros', label: 'Não Identificados' }] }
+            // ==========================================
+            // RENDERIZAÇÃO ABA 1: PLANILHAS (Agrupada)
+            // ==========================================
+            const groupsP = [
+                { id: 'credito', name: 'Crédito', color: 'text-blue-700 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10', keys: ['master_credito', 'visa_credito', 'elo_credito', 'amex_credito', 'hipercard_credito', 'tef_credito'] },
+                { id: 'debito', name: 'Débito', color: 'text-purple-700 dark:text-purple-400 bg-purple-50/50 dark:bg-purple-900/10', keys: ['master_debito', 'visa_debito', 'elo_debito', 'tef_debito'] },
+                { id: 'pix', name: 'Pix', color: 'text-teal-700 dark:text-teal-400 bg-teal-50/50 dark:bg-teal-900/10', keys: ['pix_maquina', 'pix_chave', 'pix_bb'] },
+                { id: 'outros', name: 'Outros / Benefícios', color: 'text-slate-700 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80', keys: ['alelo', 'sodexo', 'ticket', 'tef_voucher', 'ifood', 'ai_que_fome', 'boleto', 'dinheiro', 'conta_assinada', 'credito_cliente', 'sinal', 'syspro', 'outros'] }
             ];
 
-            const tbody = document.getElementById('tableBody');
-            if(tbody) tbody.innerHTML = '';
+            const tbodyP = document.getElementById('tableBodyPlanilhas');
+            if(tbodyP) tbodyP.innerHTML = '';
             
-            let grandTotalRede = 0, grandTotalPag = 0, grandTotalNu = 0;
+            let grandTotalRede = 0, grandTotalPag = 0, grandTotalNu = 0, grandTotalManual = 0, grandTotalColibri = 0;
 
-            groups.forEach(group => {
+            // Zera totais por banco
+            state.rede.total = 0; state.pagbank.total = 0; state.nubank.total = 0; state.manual.total = 0; state.colibri.total = 0;
+
+            groupsP.forEach(group => {
                 let subRede = 0, subPag = 0, subNu = 0;
                 let rowsHtml = '';
 
-                group.items.forEach(item => {
-                    const vRede = state.rede[item.key] || 0;
-                    const vPag = state.pagbank[item.key] || 0;
-                    const vNu = state.nubank[item.key] || 0;
+                group.keys.forEach(key => {
+                    const vRede = state.rede[key] || 0; const vPag = state.pagbank[key] || 0; const vNu = state.nubank[key] || 0;
                     const totalRow = vRede + vPag + vNu;
-
                     subRede += vRede; subPag += vPag; subNu += vNu;
-                    const hideZero = (totalRow === 0 && item.key.includes('outros')) ? 'hidden' : '';
+                    
+                    const catName = categoriasConferencia.find(c => c.id === key)?.label || key;
+                    const hideZero = (totalRow === 0 && key !== 'outros') ? 'hidden' : '';
 
-                    rowsHtml += `<tr class="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 ${hideZero}"><td class="py-2 px-6 pl-10 font-medium text-slate-600 dark:text-slate-400 flex items-center gap-2 text-sm"><span class="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600"></span> ${item.label}</td><td class="py-2 px-4 text-right border-l border-slate-100 dark:border-slate-800 ${vRede > 0 ? '' : 'text-slate-300 dark:text-slate-600'}">${formatBR(vRede)}</td><td class="py-2 px-4 text-right border-l border-slate-100 dark:border-slate-800 ${vPag > 0 ? '' : 'text-slate-300 dark:text-slate-600'}">${formatBR(vPag)}</td><td class="py-2 px-4 text-right border-l border-slate-100 dark:border-slate-800 ${vNu > 0 ? '' : 'text-slate-300 dark:text-slate-600'}">${formatBR(vNu)}</td><td class="py-2 px-4 text-right border-l border-slate-100 dark:border-slate-800 font-bold bg-slate-50/50 dark:bg-slate-800/30">${formatBR(totalRow)}</td></tr>`;
+                    rowsHtml += `<tr class="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 ${hideZero}"><td class="py-2 px-6 pl-10 font-medium text-slate-600 dark:text-slate-400 flex items-center gap-2 text-sm"><span class="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600"></span> ${catName}</td><td class="py-2 px-4 text-right border-l border-slate-100 dark:border-slate-800 ${vRede > 0 ? '' : 'text-slate-300 dark:text-slate-600'}">${formatBR(vRede)}</td><td class="py-2 px-4 text-right border-l border-slate-100 dark:border-slate-800 ${vPag > 0 ? '' : 'text-slate-300 dark:text-slate-600'}">${formatBR(vPag)}</td><td class="py-2 px-4 text-right border-l border-slate-100 dark:border-slate-800 ${vNu > 0 ? '' : 'text-slate-300 dark:text-slate-600'}">${formatBR(vNu)}</td><td class="py-2 px-4 text-right border-l border-slate-100 dark:border-slate-800 font-bold bg-slate-50/50 dark:bg-slate-800/30">${formatBR(totalRow)}</td></tr>`;
                 });
 
                 grandTotalRede += subRede; grandTotalPag += subPag; grandTotalNu += subNu;
-                if(tbody) {
-                    tbody.innerHTML += `<tr class="group-header ${group.color} font-bold text-sm"><td class="py-3 px-6 uppercase tracking-wider flex justify-between"><span>${group.name}</span></td><td class="py-3 px-4 text-right border-l border-white/40 dark:border-slate-700/50">${formatBR(subRede)}</td><td class="py-3 px-4 text-right border-l border-white/40 dark:border-slate-700/50">${formatBR(subPag)}</td><td class="py-3 px-4 text-right border-l border-white/40 dark:border-slate-700/50">${formatBR(subNu)}</td><td class="py-3 px-4 text-right border-l border-white/40 dark:border-slate-700/50">${formatBR(subRede + subPag + subNu)}</td></tr>` + rowsHtml;
+                if(tbodyP) {
+                    tbodyP.innerHTML += `<tr class="group-header ${group.color} font-bold text-sm"><td class="py-3 px-6 uppercase tracking-wider flex justify-between"><span>${group.name}</span></td><td class="py-3 px-4 text-right border-l border-white/40 dark:border-slate-700/50">${formatBR(subRede)}</td><td class="py-3 px-4 text-right border-l border-white/40 dark:border-slate-700/50">${formatBR(subPag)}</td><td class="py-3 px-4 text-right border-l border-white/40 dark:border-slate-700/50">${formatBR(subNu)}</td><td class="py-3 px-4 text-right border-l border-white/40 dark:border-slate-700/50">${formatBR(subRede + subPag + subNu)}</td></tr>` + rowsHtml;
                 }
             });
 
-            state.rede.total = grandTotalRede; state.pagbank.total = grandTotalPag; state.nubank.total = grandTotalNu;
-            const somaFinal = grandTotalRede + grandTotalPag + grandTotalNu;
+            // ==========================================
+            // RENDERIZAÇÃO ABA 2: CONFERÊNCIA (Completa)
+            // ==========================================
+            const tbodyC = document.getElementById('tableBodyConferencia');
+            if(tbodyC) tbodyC.innerHTML = '';
+            
+            categoriasConferencia.forEach(cat => {
+                // Remove a categoria "Outros (Não Mapeado)" da visualização de Conferência
+                if (cat.id === 'outros') return;
+
+                const vRede = state.rede[cat.id] || 0; const vPag = state.pagbank[cat.id] || 0; 
+                const vNu = state.nubank[cat.id] || 0; const vManual = state.manual[cat.id] || 0;
+                const vColibri = state.colibri[cat.id] || 0;
+                
+                const totalRow = vRede + vPag + vNu + vManual;
+                grandTotalManual += vManual;
+                grandTotalColibri += vColibri;
+
+                // Agora TODAS as 25 linhas sempre aparecerão, então não existe mais o hideZero aqui
+                if(tbodyC) {
+                    tbodyC.innerHTML += `
+                        <tr class="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                            <td class="py-1 px-4 font-bold text-slate-700 dark:text-slate-300 text-xs">${cat.label}</td>
+                            <td class="py-1 px-3 text-right border-l border-slate-100 dark:border-slate-800 ${vRede > 0 ? 'text-slate-700 dark:text-slate-300' : 'text-slate-300 dark:text-slate-600'}">${formatBR(vRede)}</td>
+                            <td class="py-1 px-3 text-right border-l border-slate-100 dark:border-slate-800 ${vPag > 0 ? 'text-slate-700 dark:text-slate-300' : 'text-slate-300 dark:text-slate-600'}">${formatBR(vPag)}</td>
+                            <td class="py-1 px-3 text-right border-l border-slate-100 dark:border-slate-800 ${vNu > 0 ? 'text-slate-700 dark:text-slate-300' : 'text-slate-300 dark:text-slate-600'}">${formatBR(vNu)}</td>
+                            <td class="py-1 px-1 border-l border-slate-100 dark:border-slate-800 bg-amber-50/50 dark:bg-amber-900/5">
+                                <input type="text" onblur="updateManualValue('${cat.id}', this.value)" class="table-input ${vManual > 0 ? 'has-value' : ''}" value="${vManual > 0 ? formatBR(vManual) : ''}" placeholder="R$ 0,00">
+                            </td>
+                            <td class="py-1 px-3 text-right border-l border-slate-100 dark:border-slate-800 font-bold bg-blue-50/50 dark:bg-blue-900/10 text-blue-700 dark:text-blue-400">${formatBR(totalRow)}</td>
+                            <td class="py-1 px-1 border-l border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
+                                <input type="text" onblur="updateColibriValue('${cat.id}', this.value)" class="table-input text-slate-600 dark:text-slate-400 ${vColibri > 0 ? 'has-value !text-blue-600 dark:!text-blue-400 font-bold' : ''}" value="${vColibri > 0 ? formatBR(vColibri) : ''}" placeholder="R$ 0,00">
+                            </td>
+                        </tr>
+                    `;
+                }
+            });
+
+            // Atualiza Totais
+            state.rede.total = grandTotalRede; 
+            state.pagbank.total = grandTotalPag; 
+            state.nubank.total = grandTotalNu; 
+            state.manual.total = grandTotalManual; 
+            state.colibri.total = grandTotalColibri;
+
+            const somaFinalBancos = grandTotalRede + grandTotalPag + grandTotalNu;
+            const somaFinalTudo = somaFinalBancos + grandTotalManual;
 
             const safeSetText = (id, text) => { const el = document.getElementById(id); if (el) el.innerText = text; };
 
+            // Totais Tela 1 (Planilhas - só soma de bancos lidos)
             safeSetText('tabRedeTotal', formatBR(grandTotalRede));
             safeSetText('tabPagBankTotal', formatBR(grandTotalPag));
             safeSetText('tabNubankTotal', formatBR(grandTotalNu));
-            safeSetText('tabTotalGeral', formatBR(somaFinal));
+            safeSetText('tabTotalGeral', formatBR(somaFinalBancos));
             
+            // Totais Tela 2 (Conferência - soma com manual + Colibri)
+            safeSetText('confRedeTotal', formatBR(grandTotalRede));
+            safeSetText('confPagBankTotal', formatBR(grandTotalPag));
+            safeSetText('confNubankTotal', formatBR(grandTotalNu));
+            safeSetText('confManualTotal', formatBR(grandTotalManual));
+            safeSetText('confTotalGeral', formatBR(somaFinalTudo));
+            safeSetText('confColibriTotal', formatBR(grandTotalColibri));
+            
+            // Cards superiores (Topo mostra tudo)
             safeSetText('redeTotalCard', formatBR(grandTotalRede));
             safeSetText('pagbankTotalCard', formatBR(grandTotalPag));
             safeSetText('nubankTotalCard', formatBR(grandTotalNu));
-            safeSetText('grandTotal', formatBR(somaFinal));
+            safeSetText('grandTotal', formatBR(somaFinalTudo)); 
         };
 
         const handleFileRead = (fileId, bankName, logicCallback) => {
@@ -656,6 +717,8 @@
                     
                     document.getElementById(`${fileId}Name`).innerText = file.name;
                     document.getElementById(`${fileId.replace('File', 'Loading')}`).classList.remove('hidden');
+                    
+                    // Reseta o estado do banco a ser relido
                     state[bankName] = baseState(); 
                     
                     const reader = new FileReader();
@@ -678,8 +741,9 @@
             }
         };
 
+        // PARSERS APRIMORADOS (Rastream novas bandeiras e categorias corretamente)
         const processRede = (rows, bank) => {
-            let isHeaderFound = false; let indices = { valor: -1, mod: -1, status: -1, band: -1, meio: -1 };
+            let isHeaderFound = false; let indices = { valor: -1, mod: -1, status: -1, band: -1, meio: -1, desc: -1 };
             for (let row of rows) {
                 if (!isHeaderFound) {
                     const rowText = cleanText(row.join(' '));
@@ -689,6 +753,7 @@
                         indices.mod = row.findIndex(c => cleanText(c).includes('modalidade') || cleanText(c).includes('tipo de produto'));
                         indices.status = row.findIndex(c => cleanText(c).includes('status'));
                         indices.band = row.findIndex(c => cleanText(c).includes('bandeira'));
+                        indices.desc = row.findIndex(c => cleanText(c).includes('resumo') || cleanText(c).includes('estabelecimento'));
                         if (indices.valor !== -1) isHeaderFound = true;
                     }
                     continue;
@@ -696,15 +761,40 @@
                 if (isHeaderFound && row[indices.valor]) {
                     const status = indices.status !== -1 ? cleanText(row[indices.status]) : '';
                     if (status.includes('negada') || status.includes('cancelada') || status.includes('desfeita') || status.includes('rejeitada')) continue;
+                    
                     const valor = parseNumberBR(row[indices.valor]);
                     if (valor === 0) continue;
+                    
                     const mod = indices.mod !== -1 ? cleanText(row[indices.mod]) : '';
                     const band = indices.band !== -1 ? cleanText(row[indices.band]) : '';
-                    if (mod.includes('credito')) {
-                        if (band.includes('master')) state[bank].credito_master += valor; else if (band.includes('visa')) state[bank].credito_visa += valor; else if (band.includes('elo')) state[bank].credito_elo += valor; else state[bank].credito_outros += valor;
-                    } else if (mod.includes('debito')) {
-                        if (band.includes('master')) state[bank].debito_master += valor; else if (band.includes('visa')) state[bank].debito_visa += valor; else if (band.includes('elo')) state[bank].debito_elo += valor; else state[bank].debito_outros += valor;
-                    } else if (mod.includes('pix')) state[bank].pix_qrcode += valor; else state[bank].outros += valor;
+                    const desc = indices.desc !== -1 ? cleanText(row[indices.desc]) : '';
+                    
+                    if (mod.includes('credito') || mod.includes('crédito')) {
+                        if (band.includes('master')) state[bank].master_credito += valor; 
+                        else if (band.includes('visa')) state[bank].visa_credito += valor; 
+                        else if (band.includes('elo')) state[bank].elo_credito += valor; 
+                        else if (band.includes('amex') || band.includes('american')) state[bank].amex_credito += valor; 
+                        else if (band.includes('hiper')) state[bank].hipercard_credito += valor; 
+                        else state[bank].tef_credito += valor; // Restante vai pro genérico de TEF
+                    } else if (mod.includes('debito') || mod.includes('débito')) {
+                        if (band.includes('master')) state[bank].master_debito += valor; 
+                        else if (band.includes('visa')) state[bank].visa_debito += valor; 
+                        else if (band.includes('elo')) state[bank].elo_debito += valor; 
+                        else state[bank].tef_debito += valor;
+                    } else if (mod.includes('voucher') || mod.includes('beneficio') || band.includes('ticket') || band.includes('alelo') || band.includes('sodexo')) {
+                        if (band.includes('alelo')) state[bank].alelo += valor; 
+                        else if (band.includes('sodexo')) state[bank].sodexo += valor; 
+                        else if (band.includes('ticket')) state[bank].ticket += valor; 
+                        else state[bank].tef_voucher += valor;
+                    } else if (mod.includes('pix')) {
+                        state[bank].pix_maquina += valor; 
+                    } else if (desc.includes('ifood')) {
+                        state[bank].ifood += valor;
+                    } else if (desc.includes('ai que fome')) {
+                        state[bank].ai_que_fome += valor;
+                    } else {
+                        state[bank].outros += valor;
+                    }
                 }
             }
         };
@@ -723,14 +813,35 @@
                     const tipo = indices.tipo !== -1 ? cleanText(row[indices.tipo]) : '';
                     const desc = indices.desc !== -1 ? cleanText(row[indices.desc]) : '';
                     const textoTotal = tipo + " " + desc;
+                    
                     if (textoTotal.includes('enviado') || textoTotal.includes('retirada') || textoTotal.includes('saque') || textoTotal.includes('transferencia enviada')) continue;
+                    
                     const valor = parseNumberBR(row[indices.entradas]);
                     if (valor > 0) {
-                        if (textoTotal.includes('vendas') && textoTotal.includes('disponivel pix')) state[bank].pix_qrcode += valor;
+                        if (textoTotal.includes('ifood')) state[bank].ifood += valor;
+                        else if (textoTotal.includes('ai que fome')) state[bank].ai_que_fome += valor;
+                        else if (textoTotal.includes('vendas') && textoTotal.includes('disponivel pix')) state[bank].pix_maquina += valor;
                         else if (textoTotal.includes('pix recebido')) state[bank].pix_chave += valor;
-                        else if (textoTotal.includes('credito')) { if (textoTotal.includes('master')) state[bank].credito_master += valor; else if (textoTotal.includes('visa')) state[bank].credito_visa += valor; else if (textoTotal.includes('elo')) state[bank].credito_elo += valor; else state[bank].credito_outros += valor; } 
-                        else if (textoTotal.includes('debito')) { if (textoTotal.includes('master')) state[bank].debito_master += valor; else if (textoTotal.includes('visa')) state[bank].debito_visa += valor; else if (textoTotal.includes('elo')) state[bank].debito_elo += valor; else state[bank].debito_outros += valor; } 
-                        else if (textoTotal.includes('pix')) state[bank].pix_outros += valor; else state[bank].outros += valor;
+                        else if (textoTotal.includes('credito') || textoTotal.includes('crédito')) { 
+                            if (textoTotal.includes('master')) state[bank].master_credito += valor; 
+                            else if (textoTotal.includes('visa')) state[bank].visa_credito += valor; 
+                            else if (textoTotal.includes('elo')) state[bank].elo_credito += valor; 
+                            else if (textoTotal.includes('amex') || textoTotal.includes('american')) state[bank].amex_credito += valor; 
+                            else if (textoTotal.includes('hiper')) state[bank].hipercard_credito += valor; 
+                            else state[bank].outros += valor; 
+                        } 
+                        else if (textoTotal.includes('debito') || textoTotal.includes('débito')) { 
+                            if (textoTotal.includes('master')) state[bank].master_debito += valor; 
+                            else if (textoTotal.includes('visa')) state[bank].visa_debito += valor; 
+                            else if (textoTotal.includes('elo')) state[bank].elo_debito += valor; 
+                            else state[bank].outros += valor; 
+                        } 
+                        else if (textoTotal.includes('boleto')) state[bank].boleto += valor;
+                        else if (textoTotal.includes('alelo')) state[bank].alelo += valor;
+                        else if (textoTotal.includes('sodexo')) state[bank].sodexo += valor;
+                        else if (textoTotal.includes('ticket')) state[bank].ticket += valor;
+                        else if (textoTotal.includes('pix')) state[bank].pix_maquina += valor; // Fallback pra PagBank geralmente é QR code
+                        else state[bank].outros += valor;
                     }
                 }
             }
@@ -747,9 +858,19 @@
                 if (isHeaderFound && row[idxValor]) {
                     const textoTotal = row.join(' ').toLowerCase();
                     const valor = parseNumberBR(row[idxValor]);
+                    
                     if (valor > 0 && !textoTotal.includes('pagamento') && !textoTotal.includes('enviad') && !textoTotal.includes('saída')) {
-                        if (textoTotal.includes('pix') || textoTotal.includes('recebida') || textoTotal.includes('transfer')) state[bank].pix_chave += valor;
-                        else if (textoTotal.includes('credito') || textoTotal.includes('cartao') || textoTotal.includes('cartã')) { if (textoTotal.includes('master')) state[bank].credito_master += valor; else if (textoTotal.includes('visa')) state[bank].credito_visa += valor; else if (textoTotal.includes('elo')) state[bank].credito_elo += valor; else state[bank].credito_outros += valor; }
+                        if (textoTotal.includes('ifood')) state[bank].ifood += valor;
+                        else if (textoTotal.includes('ai que fome')) state[bank].ai_que_fome += valor;
+                        else if (textoTotal.includes('pix') || textoTotal.includes('recebida') || textoTotal.includes('transfer')) state[bank].pix_chave += valor;
+                        else if (textoTotal.includes('credito') || textoTotal.includes('cartao') || textoTotal.includes('cartã')) { 
+                            if (textoTotal.includes('master')) state[bank].master_credito += valor; 
+                            else if (textoTotal.includes('visa')) state[bank].visa_credito += valor; 
+                            else if (textoTotal.includes('elo')) state[bank].elo_credito += valor; 
+                            else if (textoTotal.includes('amex') || textoTotal.includes('american')) state[bank].amex_credito += valor; 
+                            else if (textoTotal.includes('hiper')) state[bank].hipercard_credito += valor; 
+                            else state[bank].outros += valor; 
+                        }
                         else state[bank].outros += valor;
                     }
                 }
@@ -757,7 +878,8 @@
         };
 
         window.limparTudo = (showAlert = true) => {
-            state.rede = baseState(); state.pagbank = baseState(); state.nubank = baseState();
+            state.rede = baseState(); state.pagbank = baseState(); state.nubank = baseState(); 
+            state.manual = baseState(); state.colibri = baseState();
             
             const clearInput = (id) => { const el = document.getElementById(id); if (el) el.value = ''; };
             const clearText = (id, text) => { const el = document.getElementById(id); if (el) el.innerText = text; };
@@ -775,9 +897,9 @@
                 return;
             }
 
-            const totalGeral = state.rede.total + state.pagbank.total + state.nubank.total;
+            const totalGeral = state.rede.total + state.pagbank.total + state.nubank.total + state.manual.total;
             if (totalGeral === 0) {
-                window.showToast("Atenção: Não há valores lidos para salvar.", "error");
+                window.showToast("Atenção: Não há valores para salvar.", "error");
                 return;
             }
             
@@ -790,7 +912,7 @@
             }
 
             const btn = document.getElementById('btnSalvar');
-            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Salvando no Banco...';
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Salvando...';
             btn.disabled = true;
             lucide.createIcons();
 
@@ -801,7 +923,10 @@
                     referencia: dateInput,
                     modoVisualizacao: mode,
                     dataAtualizacao: serverTimestamp(),
-                    totaisGlobais: { rede: state.rede.total, pagbank: state.pagbank.total, nubank: state.nubank.total, somaGeral: totalGeral },
+                    totaisGlobais: { 
+                        rede: state.rede.total, pagbank: state.pagbank.total, nubank: state.nubank.total, 
+                        manual: state.manual.total, colibri: state.colibri.total, somaGeral: totalGeral 
+                    },
                     detalhado: state 
                 };
 
