@@ -1,10 +1,27 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acerto de Caixa - Caratininga</title>
+    <!-- Configuração do Tailwind para permitir o modo escuro manual -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        slate: {
+                            850: '#151e2e',
+                            900: '#0f172a',
+                            950: '#020617',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -15,6 +32,7 @@
         }
         tbody tr:not(.group-header) { transition: background-color 0.2s; }
         .group-header td { border-top: 2px solid #e2e8f0; }
+        .dark .group-header td { border-top: 2px solid #334155; }
         
         /* Grid do Calendário Compacto para 4 colunas */
         .calendar-grid {
@@ -29,58 +47,77 @@
             align-items: center;
             justify-content: center;
             border-radius: 0.375rem;
-            font-size: 0.75rem; /* Menor para caber bem */
+            font-size: 0.75rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.15s ease-in-out;
         }
-        .day-box.empty { background-color: transparent; cursor: default; }
+        .day-box.empty { background-color: transparent !important; cursor: default; border: none !important; }
         
         /* Oculta scrollbar mas permite rolar nas tabelas caso tela pequena */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
+        .dark ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .dark ::-webkit-scrollbar-thumb { background: #334155; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .dark ::-webkit-scrollbar-thumb:hover { background: #475569; }
     </style>
+    
+    <!-- Script inicial do Tema -->
+    <script>
+        if (localStorage.getItem('theme') === 'light') {
+            document.documentElement.classList.remove('dark');
+        } else {
+            // Padrão será dark, caso não tenha preferência salva
+            document.documentElement.classList.add('dark');
+        }
+    </script>
 </head>
-<body class="bg-slate-50 min-h-screen text-slate-800 relative">
+<body class="bg-slate-50 dark:bg-slate-950 min-h-screen text-slate-800 dark:text-slate-200 relative transition-colors duration-200">
+
+    <!-- Botão Fixo Alternar Tema -->
+    <button onclick="toggleTheme()" class="fixed top-4 right-4 z-50 p-2.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors shadow-sm focus:outline-none border border-slate-300 dark:border-slate-700">
+        <i data-lucide="moon" class="w-5 h-5 hidden dark:block"></i>
+        <i data-lucide="sun" class="w-5 h-5 block dark:hidden"></i>
+    </button>
 
     <!-- TELA DE LOGIN -->
-    <div id="loginScreen" class="min-h-screen flex items-center justify-center p-4 bg-slate-100">
-        <div class="bg-white p-8 rounded-3xl shadow-xl w-full max-w-md border border-slate-200">
+    <div id="loginScreen" class="min-h-screen flex items-center justify-center p-4 bg-slate-100 dark:bg-slate-950">
+        <div class="bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-xl w-full max-w-md border border-slate-200 dark:border-slate-800 transition-colors">
             <div class="text-center mb-8">
-                <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
+                <div class="w-16 h-16 bg-blue-100 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
                     <i data-lucide="lock" class="w-8 h-8"></i>
                 </div>
-                <h2 class="text-2xl font-bold text-slate-900">Acesso Restrito</h2>
-                <p class="text-slate-500 mt-1">Grupo Caratininga</p>
+                <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Acesso Restrito</h2>
+                <p class="text-slate-500 dark:text-slate-400 mt-1">Grupo Caratininga</p>
             </div>
             
             <form id="loginForm" class="space-y-5">
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">E-mail corporativo</label>
+                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">E-mail corporativo</label>
                     <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
                             <i data-lucide="mail" class="w-5 h-5"></i>
                         </div>
-                        <input type="email" id="email" required class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" placeholder="usuario@empresa.com.br">
+                        <input type="email" id="email" required class="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder-slate-400 dark:placeholder-slate-500" placeholder="usuario@empresa.com.br">
                     </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Senha</label>
+                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Senha</label>
                     <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
                             <i data-lucide="key" class="w-5 h-5"></i>
                         </div>
-                        <input type="password" id="senha" required class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" placeholder="••••••••">
+                        <input type="password" id="senha" required class="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder-slate-400 dark:placeholder-slate-500" placeholder="••••••••">
                     </div>
                 </div>
                 
-                <button type="submit" id="btnEntrar" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 mt-2">
+                <button type="submit" id="btnEntrar" class="w-full bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white font-bold py-3.5 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 mt-2">
                     <i data-lucide="log-in" class="w-5 h-5"></i> Entrar no Sistema
                 </button>
                 
-                <div id="loginError" class="bg-red-50 text-red-600 p-3 rounded-lg text-sm text-center hidden font-medium border border-red-100 mt-4 flex items-center justify-center gap-2">
+                <div id="loginError" class="bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm text-center hidden font-medium border border-red-100 dark:border-red-500/20 mt-4 flex items-center justify-center gap-2">
                     <i data-lucide="alert-circle" class="w-4 h-4"></i>
                     <span>Credenciais inválidas.</span>
                 </div>
@@ -91,144 +128,80 @@
     <!-- TELA 1: DASHBOARD DE UNIDADES COM CALENDÁRIO -->
     <div id="dashboardScreen" class="hidden min-h-screen p-4 w-full max-w-[1600px] mx-auto flex flex-col pt-8">
         <header class="text-center mb-8">
-            <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mb-2">Painel de Fechamentos</h1>
-            <p class="text-slate-500">Selecione o dia na unidade correspondente para iniciar a conferência.</p>
-            <div class="flex items-center justify-center gap-4 mt-3 text-xs font-semibold text-slate-500">
-                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-red-100 border border-red-300 block"></span> Pendente</span>
-                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-emerald-100 border border-emerald-300 block"></span> Salvo</span>
-                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-blue-100 border border-blue-300 block"></span> Hoje (fazer)</span>
-                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-teal-100 border border-teal-300 block"></span> Hoje (salvo)</span>
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-2">Painel de Fechamentos</h1>
+            <p class="text-slate-500 dark:text-slate-400">Selecione o dia na unidade correspondente para iniciar a conferência.</p>
+            
+            <!-- Legenda das Cores adaptada para o modo escuro -->
+            <div class="flex flex-wrap items-center justify-center gap-4 mt-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-red-100 dark:bg-red-500/20 border border-red-300 dark:border-red-500/50 block"></span> Pendente</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-emerald-100 dark:bg-emerald-500/20 border border-emerald-300 dark:border-emerald-500/50 block"></span> Salvo</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-blue-100 dark:bg-blue-500/20 border border-blue-300 dark:border-blue-500/50 block"></span> Hoje (fazer)</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-teal-100 dark:bg-teal-500/20 border border-teal-300 dark:border-teal-500/50 block"></span> Hoje (salvo)</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 block"></span> Bloqueado</span>
             </div>
+            
             <div class="flex justify-center mt-6">
-                <button onclick="fazerLogout()" class="text-sm font-semibold text-slate-400 hover:text-red-600 flex items-center gap-2 transition-colors">
+                <button onclick="fazerLogout()" class="text-sm font-semibold text-slate-400 hover:text-red-600 dark:hover:text-red-400 flex items-center gap-2 transition-colors">
                     <i data-lucide="log-out" class="w-4 h-4"></i> Sair do Sistema
                 </button>
             </div>
         </header>
 
-        <!-- Container ajustado para 4 colunas em telas grandes -->
+        <!-- Container de Cards -->
         <div class="w-full">
             <div id="cardsContainer" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6"></div>
         </div>
     </div>
 
-    <!-- TELA 2: ÁREA DE TRABALHO DA UNIDADE (Oculta por padrão) -->
+    <!-- TELA 2: ÁREA DE TRABALHO DA UNIDADE -->
     <div id="appScreen" class="hidden p-4 md:p-8 max-w-7xl mx-auto">
         
         <!-- Barra Superior de Controle -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 mb-8 flex flex-col lg:flex-row items-center justify-between gap-4">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-4 mb-8 flex flex-col lg:flex-row items-center justify-between gap-4 transition-colors">
             <div class="flex items-center gap-4 w-full lg:w-auto">
-                <button onclick="voltarParaDashboard()" class="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors">
+                <button onclick="voltarParaDashboard()" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 dark:text-slate-400 transition-colors">
                     <i data-lucide="arrow-left" class="w-6 h-6"></i>
                 </button>
                 <div>
-                    <h1 class="text-2xl font-black text-slate-800 flex items-center gap-2">
+                    <h1 class="text-2xl font-black text-slate-800 dark:text-white flex items-center gap-2">
                         <span id="headerUnitName">Matriz</span>
                     </h1>
-                    <p class="text-xs text-slate-500 uppercase tracking-wide font-bold" id="dbStatus">Conectado ao Banco</p>
+                    <p class="text-xs text-emerald-600 dark:text-emerald-400 uppercase tracking-wide font-bold flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span> Banco Conectado
+                    </p>
                 </div>
             </div>
 
-            <div class="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto bg-slate-50 p-2 rounded-xl border border-slate-100">
-                <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-slate-200 shadow-sm w-full sm:w-auto">
-                    <i data-lucide="calendar" class="w-5 h-5 text-blue-500"></i>
-                    <span class="text-sm font-semibold text-slate-600">Dia de Referência:</span>
+            <div class="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto bg-slate-50 dark:bg-slate-800 p-2 rounded-xl border border-slate-100 dark:border-slate-700">
+                <div class="flex items-center gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm w-full sm:w-auto">
+                    <i data-lucide="calendar" class="w-5 h-5 text-blue-500 dark:text-blue-400"></i>
+                    <span class="text-sm font-semibold text-slate-600 dark:text-slate-300">Dia de Referência:</span>
                 </div>
-                <input type="date" id="dateSelector" onchange="verificarDadosSalvos()" class="w-full sm:w-auto bg-white border border-slate-200 text-slate-700 font-bold px-4 py-2 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                <input type="date" id="dateSelector" onchange="verificarDadosSalvos()" class="w-full sm:w-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-white font-bold px-4 py-2 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 outline-none color-scheme-light-dark" style="color-scheme: light dark;">
             </div>
 
-            <div class="text-right w-full lg:w-auto bg-slate-800 text-white px-6 py-2 rounded-xl shadow-inner">
+            <div class="text-right w-full lg:w-auto bg-slate-800 dark:bg-black/50 text-white px-6 py-2 rounded-xl shadow-inner border border-transparent dark:border-slate-800">
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Consolidado</p>
                 <p id="grandTotal" class="text-2xl font-black text-emerald-400">R$ 0,00</p>
             </div>
         </div>
 
         <!-- Alerta de Dados Recuperados -->
-        <div id="dadosRecuperadosAlert" class="hidden mb-6 bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-xl flex items-center gap-3 shadow-sm">
-            <i data-lucide="check-circle-2" class="w-6 h-6 text-blue-500"></i>
+        <div id="dadosRecuperadosAlert" class="hidden mb-6 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 text-blue-800 dark:text-blue-300 px-4 py-3 rounded-xl flex items-center gap-3 shadow-sm">
+            <i data-lucide="check-circle-2" class="w-6 h-6 text-blue-500 dark:text-blue-400 shrink-0"></i>
             <div>
                 <p class="font-bold text-sm">Fechamento recuperado do banco de dados.</p>
-                <p class="text-xs text-blue-600">Você pode reenviar arquivos para editar os valores e clicar em Salvar para atualizar.</p>
+                <p class="text-xs text-blue-600 dark:text-blue-400/80">Você pode reenviar arquivos para editar os valores e clicar em Salvar para atualizar.</p>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            <!-- Card Itaú Rede -->
-            <div class="bg-white rounded-2xl shadow-sm border border-orange-200 p-5 flex flex-col relative overflow-hidden group hover:border-orange-300 transition-colors">
-                <div class="absolute top-0 right-0 w-24 h-24 bg-orange-50 rounded-bl-full -z-10"></div>
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="p-3 bg-orange-100 rounded-lg text-orange-600">
-                        <i data-lucide="credit-card"></i>
-                    </div>
-                    <h2 class="text-lg font-bold text-slate-800">Itaú Rede</h2>
-                </div>
-                
-                <div class="file-input-wrapper w-full mb-2">
-                    <button class="w-full flex items-center justify-center gap-2 bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 border-dashed py-3 rounded-xl font-medium transition-colors text-sm">
-                        <i data-lucide="upload-cloud" class="w-4 h-4"></i> <span id="redeFileName" class="truncate max-w-[150px]">Enviar Arquivo</span>
-                    </button>
-                    <input type="file" id="redeFile" accept=".csv, .xlsx, .xls" />
-                </div>
-                <div id="redeLoading" class="hidden text-center text-orange-500 text-xs my-2 font-medium animate-pulse">Processando...</div>
-                
-                <div class="mt-auto bg-slate-50 rounded-xl p-3 border border-slate-100 flex justify-between items-center">
-                    <span class="text-slate-500 text-xs font-medium">Lido:</span>
-                    <span id="redeTotalCard" class="font-bold text-slate-700">R$ 0,00</span>
-                </div>
-            </div>
-
-            <!-- Card PagBank -->
-            <div class="bg-white rounded-2xl shadow-sm border border-teal-200 p-5 flex flex-col relative overflow-hidden group hover:border-teal-300 transition-colors">
-                <div class="absolute top-0 right-0 w-24 h-24 bg-teal-50 rounded-bl-full -z-10"></div>
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="p-3 bg-teal-100 rounded-lg text-teal-600">
-                        <i data-lucide="smartphone"></i>
-                    </div>
-                    <h2 class="text-lg font-bold text-slate-800">PagBank</h2>
-                </div>
-                
-                <div class="file-input-wrapper w-full mb-2">
-                    <button class="w-full flex items-center justify-center gap-2 bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 border-dashed py-3 rounded-xl font-medium transition-colors text-sm">
-                        <i data-lucide="upload-cloud" class="w-4 h-4"></i> <span id="pagbankFileName" class="truncate max-w-[150px]">Enviar Arquivo</span>
-                    </button>
-                    <input type="file" id="pagbankFile" accept=".csv, .xlsx, .xls" />
-                </div>
-                <div id="pagbankLoading" class="hidden text-center text-teal-500 text-xs my-2 font-medium animate-pulse">Processando...</div>
-
-                <div class="mt-auto bg-slate-50 rounded-xl p-3 border border-slate-100 flex justify-between items-center">
-                    <span class="text-slate-500 text-xs font-medium">Lido:</span>
-                    <span id="pagbankTotalCard" class="font-bold text-slate-700">R$ 0,00</span>
-                </div>
-            </div>
-
-            <!-- Card Nubank -->
-            <div class="bg-white rounded-2xl shadow-sm border border-purple-200 p-5 flex flex-col relative overflow-hidden group hover:border-purple-300 transition-colors">
-                <div class="absolute top-0 right-0 w-24 h-24 bg-purple-50 rounded-bl-full -z-10"></div>
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="p-3 bg-purple-100 rounded-lg text-purple-600">
-                        <i data-lucide="building-2"></i>
-                    </div>
-                    <h2 class="text-lg font-bold text-slate-800">Nubank</h2>
-                </div>
-                
-                <div class="file-input-wrapper w-full mb-2">
-                    <button class="w-full flex items-center justify-center gap-2 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 border-dashed py-3 rounded-xl font-medium transition-colors text-sm">
-                        <i data-lucide="upload-cloud" class="w-4 h-4"></i> <span id="nubankFileName" class="truncate max-w-[150px]">Enviar Arquivo</span>
-                    </button>
-                    <input type="file" id="nubankFile" accept=".csv, .xlsx, .xls" />
-                </div>
-                <div id="nubankLoading" class="hidden text-center text-purple-500 text-xs my-2 font-medium animate-pulse">Processando...</div>
-
-                <div class="mt-auto bg-slate-50 rounded-xl p-3 border border-slate-100 flex justify-between items-center">
-                    <span class="text-slate-500 text-xs font-medium">Lido:</span>
-                    <span id="nubankTotalCard" class="font-bold text-slate-700">R$ 0,00</span>
-                </div>
-            </div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8" id="fileCardsContainer">
+            <!-- Cards de Envio de Arquivos (As cores serão preenchidas no JS para gerenciar o Dark Mode corretamente) -->
         </div>
 
         <!-- Tabela -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
-            <div class="bg-slate-800 p-4 text-white flex items-center justify-between">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden mb-8 transition-colors">
+            <div class="bg-slate-800 dark:bg-black/40 border-b dark:border-slate-800 p-4 text-white flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <i data-lucide="table-properties" class="text-blue-400"></i>
                     <h3 class="text-lg font-bold">Resumo Detalhado</h3>
@@ -238,22 +211,22 @@
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse min-w-[700px]">
                     <thead>
-                        <tr class="border-b border-slate-200 bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
+                        <tr class="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider">
                             <th class="py-3 px-6 font-semibold w-1/4">Categoria / Bandeira</th>
-                            <th class="py-3 px-4 font-semibold text-right border-l border-slate-200">Itaú Rede</th>
-                            <th class="py-3 px-4 font-semibold text-right border-l border-slate-200">PagBank</th>
-                            <th class="py-3 px-4 font-semibold text-right border-l border-slate-200">Nubank</th>
-                            <th class="py-3 px-4 font-semibold text-right border-l border-slate-200 bg-blue-50 text-blue-700">Total Geral</th>
+                            <th class="py-3 px-4 font-semibold text-right border-l border-slate-200 dark:border-slate-700">Itaú Rede</th>
+                            <th class="py-3 px-4 font-semibold text-right border-l border-slate-200 dark:border-slate-700">PagBank</th>
+                            <th class="py-3 px-4 font-semibold text-right border-l border-slate-200 dark:border-slate-700">Nubank</th>
+                            <th class="py-3 px-4 font-semibold text-right border-l border-slate-200 dark:border-slate-700 bg-blue-50/50 dark:bg-blue-500/5 text-blue-700 dark:text-blue-400">Total Geral</th>
                         </tr>
                     </thead>
-                    <tbody class="text-slate-700 text-sm" id="tableBody"></tbody>
+                    <tbody class="text-slate-700 dark:text-slate-300 text-sm" id="tableBody"></tbody>
                     <tfoot>
-                        <tr class="bg-slate-100 text-slate-900 font-black text-base">
+                        <tr class="bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white font-black text-base border-t border-slate-200 dark:border-slate-800">
                             <td class="py-4 px-6 uppercase text-sm">Soma Final</td>
-                            <td class="py-4 px-4 text-right border-l border-slate-200 text-orange-700" id="tabRedeTotal">R$ 0,00</td>
-                            <td class="py-4 px-4 text-right border-l border-slate-200 text-teal-700" id="tabPagBankTotal">R$ 0,00</td>
-                            <td class="py-4 px-4 text-right border-l border-slate-200 text-purple-700" id="tabNubankTotal">R$ 0,00</td>
-                            <td class="py-4 px-4 text-right border-l border-slate-200 text-emerald-600 bg-blue-100/50" id="tabTotalGeral">R$ 0,00</td>
+                            <td class="py-4 px-4 text-right border-l border-slate-200 dark:border-slate-800 text-orange-700 dark:text-orange-400" id="tabRedeTotal">R$ 0,00</td>
+                            <td class="py-4 px-4 text-right border-l border-slate-200 dark:border-slate-800 text-teal-700 dark:text-teal-400" id="tabPagBankTotal">R$ 0,00</td>
+                            <td class="py-4 px-4 text-right border-l border-slate-200 dark:border-slate-800 text-purple-700 dark:text-purple-400" id="tabNubankTotal">R$ 0,00</td>
+                            <td class="py-4 px-4 text-right border-l border-slate-200 dark:border-slate-800 text-emerald-600 dark:text-emerald-400 bg-blue-100/50 dark:bg-blue-900/20" id="tabTotalGeral">R$ 0,00</td>
                         </tr>
                     </tfoot>
                 </table>
@@ -261,10 +234,10 @@
         </div>
         
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pb-12">
-            <button onclick="limparTudo()" class="text-slate-500 hover:text-red-600 border border-slate-200 hover:border-red-200 text-sm font-medium transition-colors flex items-center justify-center gap-2 px-6 py-3 rounded-xl hover:bg-red-50 w-full sm:w-auto">
+            <button onclick="limparTudo()" class="text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 border border-slate-200 dark:border-slate-700 hover:border-red-200 dark:hover:border-red-500/50 text-sm font-medium transition-colors flex items-center justify-center gap-2 px-6 py-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-500/10 w-full sm:w-auto bg-white dark:bg-slate-900 shadow-sm">
                 <i data-lucide="eraser" class="w-4 h-4"></i> Limpar Formulário
             </button>
-            <button id="btnSalvar" onclick="salvarNoFirestore()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold transition-all flex items-center justify-center gap-2 px-8 py-3 rounded-xl shadow-md hover:shadow-lg w-full sm:w-auto">
+            <button id="btnSalvar" onclick="salvarNoFirestore()" class="bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white text-sm font-bold transition-all flex items-center justify-center gap-2 px-8 py-3 rounded-xl shadow-md hover:shadow-lg w-full sm:w-auto">
                 <i data-lucide="save" class="w-4 h-4"></i> Salvar / Atualizar Fechamento
             </button>
         </div>
@@ -299,7 +272,6 @@
         let unsubscribeDb = null;
         const appId = 'acerto-colibri'; 
         
-        // VARIÁVEIS DE ESTADO DO SISTEMA
         let currentUnit = '';
         let currentRecordId = null; 
         window.todasConferencias = []; 
@@ -311,12 +283,65 @@
             { id: 'Tianguá', nome: 'Tianguá', icon: 'map', color: 'purple' }
         ];
 
-        // Objeto para rastrear o mês/ano de cada unidade
+        // Rastreamento dos meses dos calendários
         const calendarState = {};
         const todayObj = new Date();
         unidadesInfo.forEach(u => {
             calendarState[u.id] = { month: todayObj.getMonth(), year: todayObj.getFullYear() };
         });
+
+        // Alternância de Tema
+        window.toggleTheme = () => {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        };
+
+        // Renderização dos Cards de Upload (Feito no JS para garantir as cores dark corretas do Tailwind)
+        const renderUploadCards = () => {
+            const container = document.getElementById('fileCardsContainer');
+            if(!container) return;
+            
+            const banks = [
+                { id: 'rede', name: 'Itaú Rede', icon: 'credit-card', color: 'orange' },
+                { id: 'pagbank', name: 'PagBank', icon: 'smartphone', color: 'teal' },
+                { id: 'nubank', name: 'Nubank', icon: 'building-2', color: 'purple' }
+            ];
+
+            container.innerHTML = banks.map(b => `
+                <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-5 flex flex-col relative overflow-hidden group hover:border-${b.color}-300 dark:hover:border-${b.color}-500/50 transition-colors">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-${b.color}-50 dark:bg-${b.color}-500/5 rounded-bl-full -z-10"></div>
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="p-3 bg-${b.color}-100 dark:bg-${b.color}-500/10 rounded-lg text-${b.color}-600 dark:text-${b.color}-400">
+                            <i data-lucide="${b.icon}"></i>
+                        </div>
+                        <h2 class="text-lg font-bold text-slate-800 dark:text-white">${b.name}</h2>
+                    </div>
+                    
+                    <div class="file-input-wrapper w-full mb-2">
+                        <button class="w-full flex items-center justify-center gap-2 bg-${b.color}-50 dark:bg-${b.color}-500/10 hover:bg-${b.color}-100 dark:hover:bg-${b.color}-500/20 text-${b.color}-700 dark:text-${b.color}-400 border border-${b.color}-200 dark:border-${b.color}-500/30 border-dashed py-3 rounded-xl font-medium transition-colors text-sm">
+                            <i data-lucide="upload-cloud" class="w-4 h-4"></i> <span id="${b.id}FileName" class="truncate max-w-[150px]">Enviar Arquivo</span>
+                        </button>
+                        <input type="file" id="${b.id}File" accept=".csv, .xlsx, .xls" />
+                    </div>
+                    <div id="${b.id}Loading" class="hidden text-center text-${b.color}-500 text-xs my-2 font-medium animate-pulse">Processando...</div>
+                    
+                    <div class="mt-auto bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3 border border-slate-100 dark:border-slate-700 flex justify-between items-center">
+                        <span class="text-slate-500 dark:text-slate-400 text-xs font-medium">Lido:</span>
+                        <span id="${b.id}TotalCard" class="font-bold text-slate-700 dark:text-slate-200">R$ 0,00</span>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Re-anexar os event listeners após injetar o HTML
+            handleFileRead('redeFile', 'rede', processRede);
+            handleFileRead('pagbankFile', 'pagbank', processPagbank);
+            handleFileRead('nubankFile', 'nubank', processNubank);
+        };
 
         // ==========================
         // SISTEMA DE LOGIN E SEGURANÇA
@@ -335,13 +360,14 @@
                 const path = `artifacts/${appId}/users/${currentUser.uid}/fechamentos`;
                 unsubscribeDb = onSnapshot(collection(db, path), (snapshot) => {
                     window.todasConferencias = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    renderAllCalendars(); // Atualiza os calendários para mostrar as bolinhas de fechamento
+                    renderAllCalendars(); 
                     if (currentUnit) window.verificarDadosSalvos(); 
                 }, (error) => {
                     console.error("Erro no DB:", error);
                 });
                 
                 renderAllCalendars();
+                renderUploadCards();
             } else {
                 currentUser = null;
                 loginScreen.classList.remove('hidden');
@@ -398,14 +424,13 @@
             container.innerHTML = '';
 
             const hj = new Date();
-            hj.setHours(0,0,0,0); // Zera horas para facilitar comparação
+            hj.setHours(0,0,0,0); 
 
             unidadesInfo.forEach(u => {
                 const cState = calendarState[u.id];
                 const date = new Date(cState.year, cState.month, 1);
                 const firstDayIndex = date.getDay();
                 const lastDay = new Date(cState.year, cState.month + 1, 0).getDate();
-                
                 const monthStrStr = `${cState.year}-${String(cState.month + 1).padStart(2, '0')}`;
                 
                 const diasComDado = {};
@@ -417,11 +442,9 @@
                 });
 
                 let daysHtml = '';
-                
                 diasSemana.forEach(d => {
-                    daysHtml += `<div class="text-[10px] font-bold text-slate-400 py-1 uppercase">${d}</div>`;
+                    daysHtml += `<div class="text-[10px] font-bold text-slate-400 dark:text-slate-500 py-1 uppercase">${d}</div>`;
                 });
-
                 for (let i = 0; i < firstDayIndex; i++) {
                     daysHtml += `<div class="day-box empty"></div>`;
                 }
@@ -432,58 +455,52 @@
                     dataDoLoop.setHours(0,0,0,0);
                     const temDado = diasComDado[i];
                     
-                    let classesAdicionais = '';
-                    let tooltip = '';
-                    let bloqueado = false;
+                    let classes = ''; let tooltip = ''; let bloqueado = false;
 
                     if (dataDoLoop > hj) {
-                        // FUTURO: Cinza, sem hover, não clicável
-                        classesAdicionais = 'bg-slate-50 text-slate-300 border border-slate-100 cursor-not-allowed opacity-50';
-                        tooltip = 'Data futura indisponível';
-                        bloqueado = true;
+                        classes = 'bg-slate-50 dark:bg-slate-800/50 text-slate-300 dark:text-slate-600 border border-slate-100 dark:border-slate-800 cursor-not-allowed opacity-50';
+                        tooltip = 'Data futura'; bloqueado = true;
                     } 
                     else if (dataDoLoop.getTime() === hj.getTime()) {
-                        // HOJE
                         if (temDado) {
-                            classesAdicionais = 'bg-teal-50 text-teal-600 border border-teal-200 hover:bg-teal-100 font-bold'; // Azul Verde
-                            tooltip = 'Fechamento de hoje já feito!';
+                            classes = 'bg-teal-50 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 border border-teal-200 dark:border-teal-500/30 hover:bg-teal-100 dark:hover:bg-teal-500/30 font-bold'; 
+                            tooltip = 'Fechamento feito!';
                         } else {
-                            classesAdicionais = 'bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 font-bold shadow-sm'; // Azul para fazer
-                            tooltip = 'Fazer fechamento de hoje';
+                            classes = 'bg-blue-50 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/40 hover:bg-blue-100 dark:hover:bg-blue-500/30 font-bold shadow-sm'; 
+                            tooltip = 'Fazer fechamento hoje';
                         }
                     } 
                     else {
-                        // PASSADO
                         if (temDado) {
-                            classesAdicionais = 'bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-100'; // Verde ok
-                            tooltip = 'Fechamento Salvo';
+                            classes = 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 hover:bg-emerald-100 dark:hover:bg-emerald-500/20'; 
+                            tooltip = 'Salvo';
                         } else {
-                            classesAdicionais = 'bg-red-50 text-red-500 border border-red-200 hover:bg-red-100 shadow-sm'; // Vermelho pendente
-                            tooltip = 'Fechamento Pendente (Sem dados)';
+                            classes = 'bg-red-50 dark:bg-red-500/10 text-red-500 dark:text-red-400 border border-red-200 dark:border-red-500/30 hover:bg-red-100 dark:hover:bg-red-500/20 shadow-sm'; 
+                            tooltip = 'Pendente';
                         }
                     }
 
                     const clickAction = bloqueado ? '' : `onclick="abrirUnidadeNoDia('${u.id}', '${dataFormatada}')"`;
-                    daysHtml += `<div ${clickAction} class="day-box ${classesAdicionais}" title="${tooltip}">${i}</div>`;
+                    daysHtml += `<div ${clickAction} class="day-box ${classes}" title="${tooltip}">${i}</div>`;
                 }
 
-                const cardHtml = `
-                    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden hover:border-${u.color}-300 transition-colors flex flex-col h-full min-w-0">
-                        <div class="bg-${u.color}-50 p-3 border-b border-${u.color}-100 flex items-center justify-between">
+                container.innerHTML += `
+                    <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden hover:border-${u.color}-300 dark:hover:border-${u.color}-500/50 transition-colors flex flex-col h-full min-w-0">
+                        <div class="bg-${u.color}-50 dark:bg-${u.color}-500/5 p-3 border-b border-${u.color}-100 dark:border-${u.color}-500/10 flex items-center justify-between">
                             <div class="flex items-center gap-2">
-                                <div class="bg-white p-1.5 rounded-xl text-${u.color}-600 shadow-sm border border-${u.color}-200">
+                                <div class="bg-white dark:bg-${u.color}-500/10 p-1.5 rounded-xl text-${u.color}-600 dark:text-${u.color}-400 shadow-sm border border-${u.color}-200 dark:border-${u.color}-500/20">
                                     <i data-lucide="${u.icon}" class="w-4 h-4"></i>
                                 </div>
-                                <h2 class="text-base font-bold text-slate-800 truncate">${u.id}</h2>
+                                <h2 class="text-base font-bold text-slate-800 dark:text-white truncate">${u.id}</h2>
                             </div>
                         </div>
                         <div class="p-3 lg:p-4 flex-1 flex flex-col">
                             <div class="flex items-center justify-between mb-3">
-                                <button onclick="changeMonth('${u.id}', -1)" class="p-1 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors">
+                                <button onclick="changeMonth('${u.id}', -1)" class="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 dark:text-slate-400 transition-colors">
                                     <i data-lucide="chevron-left" class="w-4 h-4"></i>
                                 </button>
-                                <span class="font-bold text-slate-700 capitalize text-sm">${mesesNome[cState.month]} ${cState.year}</span>
-                                <button onclick="changeMonth('${u.id}', 1)" class="p-1 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors">
+                                <span class="font-bold text-slate-700 dark:text-slate-200 capitalize text-sm">${mesesNome[cState.month]} ${cState.year}</span>
+                                <button onclick="changeMonth('${u.id}', 1)" class="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 dark:text-slate-400 transition-colors">
                                     <i data-lucide="chevron-right" class="w-4 h-4"></i>
                                 </button>
                             </div>
@@ -493,13 +510,12 @@
                         </div>
                     </div>
                 `;
-                container.innerHTML += cardHtml;
             });
             lucide.createIcons();
         };
 
         // ==========================
-        // LÓGICA DE NAVEGAÇÃO
+        // LÓGICA DE NAVEGAÇÃO / WORKSPACE
         // ==========================
 
         window.abrirUnidadeNoDia = (nomeUnidade, dataStr) => {
@@ -551,19 +567,9 @@
         };
 
         // ==========================
-        // UTILITÁRIOS E TOAST
+        // UTILITÁRIOS E CÁLCULO
         // ==========================
-        lucide.createIcons();
-
-        window.showToast = (message, type = 'error') => {
-            const toast = document.getElementById('toast');
-            const toastMsg = document.getElementById('toastMsg');
-            toastMsg.textContent = message;
-            toast.className = `fixed bottom-4 right-4 px-6 py-4 rounded-xl text-white font-bold shadow-2xl transition-all duration-300 transform z-50 flex items-center gap-3 ${type === 'success' ? 'bg-emerald-500' : 'bg-red-500'}`;
-            toast.classList.remove('translate-y-10', 'opacity-0', 'pointer-events-none');
-            setTimeout(() => toast.classList.add('translate-y-10', 'opacity-0', 'pointer-events-none'), 4000);
-        };
-
+        
         const baseState = () => ({
             credito_master: 0, credito_visa: 0, credito_elo: 0, credito_outros: 0,
             debito_master: 0, debito_visa: 0, debito_elo: 0, debito_outros: 0,
@@ -573,7 +579,6 @@
         let state = { rede: baseState(), pagbank: baseState(), nubank: baseState() };
 
         const formatBR = (valor) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
-
         const parseNumberBR = (val) => {
             if (typeof val === 'number') return val;
             if (!val) return 0;
@@ -586,7 +591,6 @@
             const num = parseFloat(str);
             return isNaN(num) ? 0 : num;
         };
-
         const cleanText = (txt) => {
             if (!txt) return '';
             return txt.toString().toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -594,10 +598,10 @@
 
         const renderTable = () => {
             const groups = [
-                { id: 'credito', name: 'Crédito', color: 'text-blue-700 bg-blue-50/50', items: [{ key: 'credito_master', label: 'Mastercard' }, { key: 'credito_visa', label: 'Visa' }, { key: 'credito_elo', label: 'Elo' }, { key: 'credito_outros', label: 'Outras Bandeiras' }] },
-                { id: 'debito', name: 'Débito', color: 'text-purple-700 bg-purple-50/50', items: [{ key: 'debito_master', label: 'Mastercard' }, { key: 'debito_visa', label: 'Visa' }, { key: 'debito_elo', label: 'Elo' }, { key: 'debito_outros', label: 'Outras Bandeiras' }] },
-                { id: 'pix', name: 'Pix', color: 'text-teal-700 bg-teal-50/50', items: [{ key: 'pix_qrcode', label: 'Pix Maquininha / QR Code' }, { key: 'pix_chave', label: 'Pix Chave / Transferência' }, { key: 'pix_outros', label: 'Outros Pix' }] },
-                { id: 'outros', name: 'Outras Modalidades', color: 'text-slate-700 bg-slate-100', items: [{ key: 'outros', label: 'Não Identificados' }] }
+                { id: 'credito', name: 'Crédito', color: 'text-blue-700 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10', items: [{ key: 'credito_master', label: 'Mastercard' }, { key: 'credito_visa', label: 'Visa' }, { key: 'credito_elo', label: 'Elo' }, { key: 'credito_outros', label: 'Outras Bandeiras' }] },
+                { id: 'debito', name: 'Débito', color: 'text-purple-700 dark:text-purple-400 bg-purple-50/50 dark:bg-purple-900/10', items: [{ key: 'debito_master', label: 'Mastercard' }, { key: 'debito_visa', label: 'Visa' }, { key: 'debito_elo', label: 'Elo' }, { key: 'debito_outros', label: 'Outras Bandeiras' }] },
+                { id: 'pix', name: 'Pix', color: 'text-teal-700 dark:text-teal-400 bg-teal-50/50 dark:bg-teal-900/10', items: [{ key: 'pix_qrcode', label: 'Pix Maquininha / QR Code' }, { key: 'pix_chave', label: 'Pix Chave / Transferência' }, { key: 'pix_outros', label: 'Outros Pix' }] },
+                { id: 'outros', name: 'Outras Modalidades', color: 'text-slate-700 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80', items: [{ key: 'outros', label: 'Não Identificados' }] }
             ];
 
             const tbody = document.getElementById('tableBody');
@@ -618,18 +622,16 @@
                     subRede += vRede; subPag += vPag; subNu += vNu;
                     const hideZero = (totalRow === 0 && item.key.includes('outros')) ? 'hidden' : '';
 
-                    rowsHtml += `<tr class="border-b border-slate-100 hover:bg-slate-50 ${hideZero}"><td class="py-2 px-6 pl-10 font-medium text-slate-600 flex items-center gap-2 text-sm"><span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> ${item.label}</td><td class="py-2 px-4 text-right border-l border-slate-100 ${vRede > 0 ? '' : 'text-slate-300'}">${formatBR(vRede)}</td><td class="py-2 px-4 text-right border-l border-slate-100 ${vPag > 0 ? '' : 'text-slate-300'}">${formatBR(vPag)}</td><td class="py-2 px-4 text-right border-l border-slate-100 ${vNu > 0 ? '' : 'text-slate-300'}">${formatBR(vNu)}</td><td class="py-2 px-4 text-right border-l border-slate-100 font-bold bg-slate-50/50">${formatBR(totalRow)}</td></tr>`;
+                    rowsHtml += `<tr class="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 ${hideZero}"><td class="py-2 px-6 pl-10 font-medium text-slate-600 dark:text-slate-400 flex items-center gap-2 text-sm"><span class="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600"></span> ${item.label}</td><td class="py-2 px-4 text-right border-l border-slate-100 dark:border-slate-800 ${vRede > 0 ? '' : 'text-slate-300 dark:text-slate-600'}">${formatBR(vRede)}</td><td class="py-2 px-4 text-right border-l border-slate-100 dark:border-slate-800 ${vPag > 0 ? '' : 'text-slate-300 dark:text-slate-600'}">${formatBR(vPag)}</td><td class="py-2 px-4 text-right border-l border-slate-100 dark:border-slate-800 ${vNu > 0 ? '' : 'text-slate-300 dark:text-slate-600'}">${formatBR(vNu)}</td><td class="py-2 px-4 text-right border-l border-slate-100 dark:border-slate-800 font-bold bg-slate-50/50 dark:bg-slate-800/30">${formatBR(totalRow)}</td></tr>`;
                 });
 
                 grandTotalRede += subRede; grandTotalPag += subPag; grandTotalNu += subNu;
                 if(tbody) {
-                    tbody.innerHTML += `<tr class="group-header ${group.color} font-bold text-sm"><td class="py-3 px-6 uppercase tracking-wider flex justify-between"><span>${group.name}</span></td><td class="py-3 px-4 text-right border-l border-white/40">${formatBR(subRede)}</td><td class="py-3 px-4 text-right border-l border-white/40">${formatBR(subPag)}</td><td class="py-3 px-4 text-right border-l border-white/40">${formatBR(subNu)}</td><td class="py-3 px-4 text-right border-l border-white/40">${formatBR(subRede + subPag + subNu)}</td></tr>` + rowsHtml;
+                    tbody.innerHTML += `<tr class="group-header ${group.color} font-bold text-sm"><td class="py-3 px-6 uppercase tracking-wider flex justify-between"><span>${group.name}</span></td><td class="py-3 px-4 text-right border-l border-white/40 dark:border-slate-700/50">${formatBR(subRede)}</td><td class="py-3 px-4 text-right border-l border-white/40 dark:border-slate-700/50">${formatBR(subPag)}</td><td class="py-3 px-4 text-right border-l border-white/40 dark:border-slate-700/50">${formatBR(subNu)}</td><td class="py-3 px-4 text-right border-l border-white/40 dark:border-slate-700/50">${formatBR(subRede + subPag + subNu)}</td></tr>` + rowsHtml;
                 }
             });
 
-            state.rede.total = grandTotalRede; 
-            state.pagbank.total = grandTotalPag; 
-            state.nubank.total = grandTotalNu;
+            state.rede.total = grandTotalRede; state.pagbank.total = grandTotalPag; state.nubank.total = grandTotalNu;
             const somaFinal = grandTotalRede + grandTotalPag + grandTotalNu;
 
             const safeSetText = (id, text) => { const el = document.getElementById(id); if (el) el.innerText = text; };
@@ -676,7 +678,7 @@
             }
         };
 
-        handleFileRead('redeFile', 'rede', (rows, bank) => {
+        const processRede = (rows, bank) => {
             let isHeaderFound = false; let indices = { valor: -1, mod: -1, status: -1, band: -1, meio: -1 };
             for (let row of rows) {
                 if (!isHeaderFound) {
@@ -705,9 +707,9 @@
                     } else if (mod.includes('pix')) state[bank].pix_qrcode += valor; else state[bank].outros += valor;
                 }
             }
-        });
+        };
 
-        handleFileRead('pagbankFile', 'pagbank', (rows, bank) => {
+        const processPagbank = (rows, bank) => {
             let isHeaderFound = false; let indices = { entradas: -1, tipo: -1, desc: -1 };
             for (let row of rows) {
                 if (!isHeaderFound) {
@@ -732,9 +734,9 @@
                     }
                 }
             }
-        });
+        };
 
-        handleFileRead('nubankFile', 'nubank', (rows, bank) => {
+        const processNubank = (rows, bank) => {
             let isHeaderFound = false; let idxValor = -1;
             for (let row of rows) {
                 if (!isHeaderFound) {
@@ -752,7 +754,7 @@
                     }
                 }
             }
-        });
+        };
 
         window.limparTudo = (showAlert = true) => {
             state.rede = baseState(); state.pagbank = baseState(); state.nubank = baseState();
@@ -821,9 +823,6 @@
                 lucide.createIcons();
             }
         };
-
-        // Renderiza tabela zerada na inicialização
-        renderTable();
     </script>
 </body>
 </html>
