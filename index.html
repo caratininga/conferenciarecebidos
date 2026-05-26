@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acerto de Caixa - Caratininga</title>
+    <link rel="icon" href="icone.png" type="image/png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -111,9 +112,9 @@
             
             <div class="flex flex-wrap items-center justify-center gap-4 mt-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
                 <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-red-100 dark:bg-red-500/20 border border-red-300 dark:border-red-500/50 block"></span> Pendente</span>
-                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-emerald-100 dark:bg-emerald-500/20 border border-emerald-300 dark:border-emerald-500/50 block"></span> Salvo</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-amber-100 dark:bg-amber-500/20 border border-amber-300 dark:border-amber-500/50 block"></span> Só Arquivos / Divergente</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-emerald-100 dark:bg-emerald-500/20 border border-emerald-300 dark:border-emerald-500/50 block"></span> Conferido OK</span>
                 <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-blue-100 dark:bg-blue-500/20 border border-blue-300 dark:border-blue-500/50 block"></span> Hoje (fazer)</span>
-                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-teal-100 dark:bg-teal-500/20 border border-teal-300 dark:border-teal-500/50 block"></span> Hoje (salvo)</span>
                 <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 block"></span> Bloqueado</span>
             </div>
             
@@ -163,7 +164,7 @@
         </div>
 
         <div id="dadosRecuperadosAlert" class="hidden mb-6 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 text-blue-800 dark:text-blue-300 px-4 py-3 rounded-xl flex items-center gap-3 shadow-sm">
-            <i data-lucide="check-circle-2" class="w-6 h-6 text-blue-500 dark:text-blue-400 shrink-0"></i>
+            <i data-lucide="info" class="w-6 h-6 text-blue-500 dark:text-blue-400 shrink-0"></i>
             <div>
                 <p class="font-bold text-sm">Fechamento recuperado do banco de dados.</p>
                 <p class="text-xs text-blue-600 dark:text-blue-400/80">Você pode reenviar arquivos para editar os valores e clicar em Salvar para atualizar.</p>
@@ -244,7 +245,15 @@
                             <td class="py-4 px-3 text-right border-l border-slate-200 dark:border-slate-800 text-purple-700 dark:text-purple-400" id="confNubankTotal">R$ 0,00</td>
                             <td class="py-4 px-3 text-right border-l border-slate-200 dark:border-slate-800 text-amber-700 dark:text-amber-500" id="confManualTotal">R$ 0,00</td>
                             <td class="py-4 px-3 text-right border-l border-slate-200 dark:border-slate-800 text-emerald-600 dark:text-emerald-400 bg-blue-100/50 dark:bg-blue-900/20 text-base" id="confTotalGeral">R$ 0,00</td>
-                            <td class="py-4 px-3 text-right border-l border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-base" id="confColibriTotal">R$ 0,00</td>
+                            <td class="py-4 px-3 border-l border-slate-200 dark:border-slate-800">
+                                <div class="flex items-center justify-end gap-2">
+                                    <span id="confColibriTotal" class="text-slate-700 dark:text-slate-300 text-base font-black">R$ 0,00</span>
+                                    <button onclick="igualarTodosColibri()" class="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-400 hover:text-blue-500 transition-colors" title="Igualar Todos os Valores">
+                                        <i data-lucide="arrow-left-to-line" class="w-5 h-5"></i>
+                                    </button>
+                                    <div id="confColibriStatus" class="flex items-center w-16 justify-end"></div>
+                                </div>
+                            </td>
                         </tr>
                     </tfoot>
                 </table>
@@ -254,6 +263,9 @@
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pb-12">
             <button onclick="limparTudo()" class="text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 border border-slate-200 dark:border-slate-700 hover:border-red-200 dark:hover:border-red-500/50 text-sm font-medium transition-colors flex items-center justify-center gap-2 px-6 py-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-500/10 w-full sm:w-auto bg-white dark:bg-slate-900 shadow-sm">
                 <i data-lucide="eraser" class="w-4 h-4"></i> Limpar Formulário
+            </button>
+            <button id="btnExcluir" onclick="excluirFechamento()" class="hidden text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border border-red-200 dark:border-red-500/30 hover:border-red-300 dark:hover:border-red-500/50 text-sm font-medium transition-colors flex items-center justify-center gap-2 px-6 py-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-500/10 w-full sm:w-auto bg-white dark:bg-slate-900 shadow-sm">
+                <i data-lucide="trash-2" class="w-4 h-4"></i> Excluir Fechamento
             </button>
             <button id="btnSalvar" onclick="salvarNoFirestore()" class="bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white text-sm font-bold transition-all flex items-center justify-center gap-2 px-8 py-3 rounded-xl shadow-md hover:shadow-lg w-full sm:w-auto">
                 <i data-lucide="save" class="w-4 h-4"></i> Salvar / Atualizar Fechamento
@@ -270,7 +282,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, updateDoc, doc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, updateDoc, doc, deleteDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBlNzgjvY6Mka3_m0_WFtK73RIeE3X9Vq0",
@@ -441,7 +453,10 @@
                 window.todasConferencias.forEach(conf => {
                     if (conf.unidade === u.id && conf.referencia.startsWith(monthStrStr)) {
                         const dia = parseInt(conf.referencia.split('-')[2]);
-                        diasComDado[dia] = true;
+                        const sG = conf.totaisGlobais?.somaGeral || 0;
+                        const cL = conf.totaisGlobais?.colibri || 0;
+                        const conferido = (Math.round(sG * 100) === Math.round(cL * 100)) && (Math.round(sG * 100) > 0);
+                        diasComDado[dia] = { conferido };
                     }
                 });
 
@@ -452,18 +467,41 @@
                 for (let i = 1; i <= lastDay; i++) {
                     const dataFormatada = `${cState.year}-${String(cState.month+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
                     const dataDoLoop = new Date(cState.year, cState.month, i); dataDoLoop.setHours(0,0,0,0);
-                    const temDado = diasComDado[i];
+                    const dadoInfo = diasComDado[i];
+                    const temDado = !!dadoInfo;
+                    const isConferido = temDado && dadoInfo.conferido;
                     
                     let classes = ''; let tooltip = ''; let bloqueado = false;
+                    
                     if (dataDoLoop > hj) {
                         classes = 'bg-slate-50 dark:bg-slate-800/50 text-slate-300 dark:text-slate-600 border border-slate-100 dark:border-slate-800 cursor-not-allowed opacity-50';
                         tooltip = 'Data futura'; bloqueado = true;
                     } else if (dataDoLoop.getTime() === hj.getTime()) {
-                        if (temDado) { classes = 'bg-teal-50 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 border border-teal-200 dark:border-teal-500/30 hover:bg-teal-100 dark:hover:bg-teal-500/30 font-bold'; tooltip = 'Fechamento feito!'; } 
-                        else { classes = 'bg-blue-50 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/40 hover:bg-blue-100 dark:hover:bg-blue-500/30 font-bold shadow-sm'; tooltip = 'Fazer fechamento hoje'; }
+                        if (temDado) {
+                            if (isConferido) {
+                                classes = 'bg-teal-50 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 border border-teal-200 dark:border-teal-500/30 hover:bg-teal-100 dark:hover:bg-teal-500/30 font-bold'; 
+                                tooltip = 'Fechamento de hoje conferido!';
+                            } else {
+                                classes = 'bg-amber-50 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30 hover:bg-amber-100 dark:hover:bg-amber-500/30 font-bold shadow-sm';
+                                tooltip = 'Fechamento de hoje incompleto (Só arquivos)';
+                            }
+                        } else {
+                            classes = 'bg-blue-50 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/40 hover:bg-blue-100 dark:hover:bg-blue-500/30 font-bold shadow-sm'; 
+                            tooltip = 'Fazer fechamento hoje';
+                        }
                     } else {
-                        if (temDado) { classes = 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 hover:bg-emerald-100 dark:hover:bg-emerald-500/20'; tooltip = 'Salvo'; } 
-                        else { classes = 'bg-red-50 dark:bg-red-500/10 text-red-500 dark:text-red-400 border border-red-200 dark:border-red-500/30 hover:bg-red-100 dark:hover:bg-red-500/20 shadow-sm'; tooltip = 'Pendente'; }
+                        if (temDado) {
+                            if (isConferido) {
+                                classes = 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 hover:bg-emerald-100 dark:hover:bg-emerald-500/20'; 
+                                tooltip = 'Fechamento Conferido';
+                            } else {
+                                classes = 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20 hover:bg-amber-100 dark:hover:bg-amber-500/20 shadow-sm';
+                                tooltip = 'Apenas arquivos / Incompleto';
+                            }
+                        } else {
+                            classes = 'bg-red-50 dark:bg-red-500/10 text-red-500 dark:text-red-400 border border-red-200 dark:border-red-500/30 hover:bg-red-100 dark:hover:bg-red-500/20 shadow-sm'; 
+                            tooltip = 'Pendente';
+                        }
                     }
                     const clickAction = bloqueado ? '' : `onclick="abrirUnidadeNoDia('${u.id}', '${dataFormatada}')"`;
                     daysHtml += `<div ${clickAction} class="day-box ${classes}" title="${tooltip}">${i}</div>`;
@@ -516,7 +554,6 @@
                 currentRecordId = registroEncontrado.id;
                 state = JSON.parse(JSON.stringify(registroEncontrado.detalhado)); 
                 
-                // Garantir que registros antigos tenham o novo objeto state.manual e state.colibri como baseState() numérico
                 if(!state.manual) state.manual = baseState();
                 if(!state.colibri) state.colibri = baseState();
 
@@ -525,11 +562,18 @@
                 document.getElementById('pagbankFileName').innerText = '✔ Arquivo Salvo';
                 document.getElementById('nubankFileName').innerText = '✔ Arquivo Salvo';
                 
+                const btnExcluir = document.getElementById('btnExcluir');
+                if(btnExcluir) btnExcluir.classList.remove('hidden');
+                
                 renderTable();
                 window.showToast("Fechamento carregado do banco.", "success");
             } else {
                 currentRecordId = null;
                 document.getElementById('dadosRecuperadosAlert').classList.add('hidden');
+                
+                const btnExcluir = document.getElementById('btnExcluir');
+                if(btnExcluir) btnExcluir.classList.add('hidden');
+                
                 window.limparTudo(false); 
             }
         };
@@ -545,7 +589,6 @@
             setTimeout(() => toast.classList.add('translate-y-10', 'opacity-0', 'pointer-events-none'), 4000);
         };
 
-        // NOVO BASE STATE: Abrange todas as categorias específicas solicitadas
         const baseState = () => ({
             ai_que_fome: 0, alelo: 0, amex_credito: 0, boleto: 0, conta_assinada: 0, credito_cliente: 0, dinheiro: 0,
             elo_credito: 0, elo_debito: 0, hipercard_credito: 0, ifood: 0, master_credito: 0, master_debito: 0,
@@ -554,10 +597,8 @@
             outros: 0, total: 0
         });
 
-        // Agora colibri também tem o baseState() para armazenar números que podem ser somados
         let state = { rede: baseState(), pagbank: baseState(), nubank: baseState(), manual: baseState(), colibri: baseState() };
 
-        // Categorias Extensas (Ordem alfabética do Colibri)
         const categoriasConferencia = [
             { id: 'ai_que_fome', label: 'Ai Que Fome' }, { id: 'alelo', label: 'Alelo' }, { id: 'amex_credito', label: 'Amex Credito' },
             { id: 'boleto', label: 'Boleto' }, { id: 'conta_assinada', label: 'Conta Assinada' }, { id: 'credito_cliente', label: 'Credito Cliente' },
@@ -588,19 +629,25 @@
 
         window.updateManualValue = (key, val) => {
             state.manual[key] = parseNumberBR(val);
-            renderTable(); // Re-calcula os totais e formata
+            renderTable(); 
         };
 
-        // Agora Colibri também é atualizado como número para poder ser formatado bonitinho (R$ 0,00)
         window.updateColibriValue = (key, val) => {
             state.colibri[key] = parseNumberBR(val);
             renderTable(); 
         };
 
+        window.igualarTodosColibri = () => {
+            categoriasConferencia.forEach(cat => {
+                if (cat.id === 'outros') return;
+                const totalRow = (state.rede[cat.id] || 0) + (state.pagbank[cat.id] || 0) + (state.nubank[cat.id] || 0) + (state.manual[cat.id] || 0);
+                state.colibri[cat.id] = totalRow;
+            });
+            renderTable();
+            window.showToast("Todos os valores do Colibri foram igualados!", "success");
+        };
+
         const renderTable = () => {
-            // ==========================================
-            // RENDERIZAÇÃO ABA 1: PLANILHAS (Agrupada)
-            // ==========================================
             const groupsP = [
                 { id: 'credito', name: 'Crédito', color: 'text-blue-700 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10', keys: ['master_credito', 'visa_credito', 'elo_credito', 'amex_credito', 'hipercard_credito', 'tef_credito'] },
                 { id: 'debito', name: 'Débito', color: 'text-purple-700 dark:text-purple-400 bg-purple-50/50 dark:bg-purple-900/10', keys: ['master_debito', 'visa_debito', 'elo_debito', 'tef_debito'] },
@@ -613,7 +660,6 @@
             
             let grandTotalRede = 0, grandTotalPag = 0, grandTotalNu = 0, grandTotalManual = 0, grandTotalColibri = 0;
 
-            // Zera totais por banco
             state.rede.total = 0; state.pagbank.total = 0; state.nubank.total = 0; state.manual.total = 0; state.colibri.total = 0;
 
             groupsP.forEach(group => {
@@ -637,14 +683,10 @@
                 }
             });
 
-            // ==========================================
-            // RENDERIZAÇÃO ABA 2: CONFERÊNCIA (Completa)
-            // ==========================================
             const tbodyC = document.getElementById('tableBodyConferencia');
             if(tbodyC) tbodyC.innerHTML = '';
             
             categoriasConferencia.forEach(cat => {
-                // Remove a categoria "Outros (Não Mapeado)" da visualização de Conferência
                 if (cat.id === 'outros') return;
 
                 const vRede = state.rede[cat.id] || 0; const vPag = state.pagbank[cat.id] || 0; 
@@ -655,7 +697,6 @@
                 grandTotalManual += vManual;
                 grandTotalColibri += vColibri;
 
-                // Agora TODAS as 25 linhas sempre aparecerão, então não existe mais o hideZero aqui
                 if(tbodyC) {
                     tbodyC.innerHTML += `
                         <tr class="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
@@ -667,15 +708,22 @@
                                 <input type="text" onblur="updateManualValue('${cat.id}', this.value)" class="table-input ${vManual > 0 ? 'has-value' : ''}" value="${vManual > 0 ? formatBR(vManual) : ''}" placeholder="R$ 0,00">
                             </td>
                             <td class="py-1 px-3 text-right border-l border-slate-100 dark:border-slate-800 font-bold bg-blue-50/50 dark:bg-blue-900/10 text-blue-700 dark:text-blue-400">${formatBR(totalRow)}</td>
-                            <td class="py-1 px-1 border-l border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
-                                <input type="text" onblur="updateColibriValue('${cat.id}', this.value)" class="table-input text-slate-600 dark:text-slate-400 ${vColibri > 0 ? 'has-value !text-blue-600 dark:!text-blue-400 font-bold' : ''}" value="${vColibri > 0 ? formatBR(vColibri) : ''}" placeholder="R$ 0,00">
+                            <td class="py-1 px-2 border-l border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
+                                <div class="flex items-center gap-1">
+                                    <input type="text" onblur="updateColibriValue('${cat.id}', this.value)" class="table-input flex-1 text-slate-600 dark:text-slate-400 ${vColibri > 0 ? 'has-value !text-blue-600 dark:!text-blue-400 font-bold' : ''}" value="${vColibri > 0 ? formatBR(vColibri) : ''}" placeholder="R$ 0,00">
+                                    <button onclick="updateColibriValue('${cat.id}', '${totalRow}')" class="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors shrink-0" title="Igualar Valor">
+                                        <i data-lucide="arrow-left-to-line" class="w-4 h-4"></i>
+                                    </button>
+                                    <div class="w-5 shrink-0 flex justify-center">
+                                        ${Math.round(vColibri*100) === Math.round(totalRow*100) && Math.round(totalRow*100) > 0 ? '<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-500"></i>' : (Math.round(vColibri*100) !== Math.round(totalRow*100) && (vColibri > 0 || totalRow > 0) ? '<i data-lucide="x-circle" class="w-4 h-4 text-red-500"></i>' : '')}
+                                    </div>
+                                </div>
                             </td>
                         </tr>
                     `;
                 }
             });
 
-            // Atualiza Totais
             state.rede.total = grandTotalRede; 
             state.pagbank.total = grandTotalPag; 
             state.nubank.total = grandTotalNu; 
@@ -687,13 +735,11 @@
 
             const safeSetText = (id, text) => { const el = document.getElementById(id); if (el) el.innerText = text; };
 
-            // Totais Tela 1 (Planilhas - só soma de bancos lidos)
             safeSetText('tabRedeTotal', formatBR(grandTotalRede));
             safeSetText('tabPagBankTotal', formatBR(grandTotalPag));
             safeSetText('tabNubankTotal', formatBR(grandTotalNu));
             safeSetText('tabTotalGeral', formatBR(somaFinalBancos));
             
-            // Totais Tela 2 (Conferência - soma com manual + Colibri)
             safeSetText('confRedeTotal', formatBR(grandTotalRede));
             safeSetText('confPagBankTotal', formatBR(grandTotalPag));
             safeSetText('confNubankTotal', formatBR(grandTotalNu));
@@ -701,11 +747,25 @@
             safeSetText('confTotalGeral', formatBR(somaFinalTudo));
             safeSetText('confColibriTotal', formatBR(grandTotalColibri));
             
-            // Cards superiores (Topo mostra tudo)
+            const roundedSomaFinal = Math.round(somaFinalTudo * 100);
+            const roundedColibri = Math.round(grandTotalColibri * 100);
+            const statusEl = document.getElementById('confColibriStatus');
+            if (statusEl) {
+                if (roundedSomaFinal === roundedColibri && roundedSomaFinal > 0) {
+                    statusEl.innerHTML = '<span class="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-xs bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1 rounded-full"><i data-lucide="check-circle-2" class="w-3 h-3"></i> OK</span>';
+                } else if (roundedSomaFinal !== roundedColibri && (roundedSomaFinal > 0 || roundedColibri > 0)) {
+                    statusEl.innerHTML = '<span class="flex items-center gap-1 text-red-600 dark:text-red-400 text-xs bg-red-50 dark:bg-red-500/10 px-2 py-1 rounded-full"><i data-lucide="x-circle" class="w-3 h-3"></i> Div.</span>';
+                } else {
+                    statusEl.innerHTML = '';
+                }
+            }
+            
             safeSetText('redeTotalCard', formatBR(grandTotalRede));
             safeSetText('pagbankTotalCard', formatBR(grandTotalPag));
             safeSetText('nubankTotalCard', formatBR(grandTotalNu));
             safeSetText('grandTotal', formatBR(somaFinalTudo)); 
+            
+            lucide.createIcons();
         };
 
         const handleFileRead = (fileId, bankName, logicCallback) => {
@@ -718,7 +778,6 @@
                     document.getElementById(`${fileId}Name`).innerText = file.name;
                     document.getElementById(`${fileId.replace('File', 'Loading')}`).classList.remove('hidden');
                     
-                    // Reseta o estado do banco a ser relido
                     state[bankName] = baseState(); 
                     
                     const reader = new FileReader();
@@ -741,7 +800,6 @@
             }
         };
 
-        // PARSERS APRIMORADOS (Rastream novas bandeiras e categorias corretamente)
         const processRede = (rows, bank) => {
             let isHeaderFound = false; let indices = { valor: -1, mod: -1, status: -1, band: -1, meio: -1, desc: -1 };
             for (let row of rows) {
@@ -775,7 +833,7 @@
                         else if (band.includes('elo')) state[bank].elo_credito += valor; 
                         else if (band.includes('amex') || band.includes('american')) state[bank].amex_credito += valor; 
                         else if (band.includes('hiper')) state[bank].hipercard_credito += valor; 
-                        else state[bank].tef_credito += valor; // Restante vai pro genérico de TEF
+                        else state[bank].tef_credito += valor; 
                     } else if (mod.includes('debito') || mod.includes('débito')) {
                         if (band.includes('master')) state[bank].master_debito += valor; 
                         else if (band.includes('visa')) state[bank].visa_debito += valor; 
@@ -840,7 +898,7 @@
                         else if (textoTotal.includes('alelo')) state[bank].alelo += valor;
                         else if (textoTotal.includes('sodexo')) state[bank].sodexo += valor;
                         else if (textoTotal.includes('ticket')) state[bank].ticket += valor;
-                        else if (textoTotal.includes('pix')) state[bank].pix_maquina += valor; // Fallback pra PagBank geralmente é QR code
+                        else if (textoTotal.includes('pix')) state[bank].pix_maquina += valor;
                         else state[bank].outros += valor;
                     }
                 }
@@ -891,6 +949,43 @@
             if (showAlert) window.showToast("Formulário limpo.", "success");
         };
 
+        window.excluirFechamento = async () => {
+            if (!currentRecordId || !currentUser) return;
+            
+            const btn = document.getElementById('btnExcluir');
+            
+            if (btn.innerText.includes('Certeza?')) {
+                btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Excluindo...';
+                lucide.createIcons();
+                
+                try {
+                    const basePath = `artifacts/${appId}/users/${currentUser.uid}/fechamentos`;
+                    await deleteDoc(doc(db, basePath, currentRecordId));
+                    window.showToast("Fechamento excluído com sucesso!", "success");
+                    
+                    currentRecordId = null;
+                    document.getElementById('dadosRecuperadosAlert').classList.add('hidden');
+                    btn.classList.add('hidden');
+                    window.limparTudo(false);
+                } catch(e) {
+                    console.error(e);
+                    window.showToast("Erro ao excluir do banco de dados.", "error");
+                } finally {
+                    btn.innerHTML = '<i data-lucide="trash-2" class="w-4 h-4"></i> Excluir Fechamento';
+                    lucide.createIcons();
+                }
+            } else {
+                btn.innerHTML = '<i data-lucide="alert-triangle" class="w-4 h-4"></i> Certeza? Clique de novo';
+                lucide.createIcons();
+                setTimeout(() => {
+                    if(btn && btn.innerText.includes('Certeza?')) {
+                        btn.innerHTML = '<i data-lucide="trash-2" class="w-4 h-4"></i> Excluir Fechamento';
+                        lucide.createIcons();
+                    }
+                }, 3000);
+            }
+        };
+
         window.salvarNoFirestore = async () => {
             if (!currentUser) {
                 window.showToast("Erro de segurança: Autenticação necessária.", "error");
@@ -898,10 +993,13 @@
             }
 
             const totalGeral = state.rede.total + state.pagbank.total + state.nubank.total + state.manual.total;
-            if (totalGeral === 0) {
-                window.showToast("Atenção: Não há valores para salvar.", "error");
-                return;
-            }
+            const totalColibri = state.colibri.total;
+            
+            const roundedTotalGeral = Math.round(totalGeral * 100);
+            const roundedTotalColibri = Math.round(totalColibri * 100);
+            
+            const isConferido = (roundedTotalGeral === roundedTotalColibri && roundedTotalGeral > 0);
+            let msgSucesso = isConferido ? "Fechamento CONFERIDO com sucesso!" : "Arquivos salvos (Pendente de conferência)!";
             
             const dateInput = document.getElementById('dateSelector').value;
             const mode = 'date';
@@ -932,12 +1030,15 @@
 
                 if (currentRecordId) {
                     await updateDoc(doc(db, basePath, currentRecordId), payload);
-                    window.showToast("Fechamento ATUALIZADO com sucesso!", "success");
+                    window.showToast(msgSucesso, "success");
                 } else {
                     const docRef = await addDoc(collection(db, basePath), payload);
                     currentRecordId = docRef.id;
                     document.getElementById('dadosRecuperadosAlert').classList.remove('hidden');
-                    window.showToast("Novo fechamento SALVO com sucesso!", "success");
+                    window.showToast(msgSucesso, "success");
+                    
+                    const btnExcluir = document.getElementById('btnExcluir');
+                    if(btnExcluir) btnExcluir.classList.remove('hidden');
                 }
             } catch (error) {
                 console.error("Erro ao salvar:", error);
