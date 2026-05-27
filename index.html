@@ -48,6 +48,8 @@
         .dark .table-input:focus { border-color: #3b82f6; background-color: #0f172a; box-shadow: 0 0 0 2px rgba(59,130,246,0.2); }
         .table-input.has-value { font-weight: bold; color: #0284c7; }
         .dark .table-input.has-value { color: #38bdf8; }
+        .table-input-red.has-value { font-weight: bold; color: #ef4444; }
+        .dark .table-input-red.has-value { color: #f87171; }
     </style>
     <script>
         if (localStorage.getItem('theme') === 'light') document.documentElement.classList.remove('dark');
@@ -224,15 +226,16 @@
             </div>
             
             <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse min-w-[900px]">
+                <table class="w-full text-left border-collapse min-w-[1000px]">
                     <thead>
                         <tr class="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-[11px] uppercase tracking-wider">
-                            <th class="py-3 px-4 font-semibold w-1/5">Categoria Colibri</th>
+                            <th class="py-3 px-4 font-semibold w-1/6">Categoria Colibri</th>
                             <th class="py-3 px-3 font-semibold text-right border-l border-slate-200 dark:border-slate-700 text-orange-600 dark:text-orange-400">Itaú Rede</th>
                             <th class="py-3 px-3 font-semibold text-right border-l border-slate-200 dark:border-slate-700 text-teal-600 dark:text-teal-400">PagBank</th>
                             <th class="py-3 px-3 font-semibold text-right border-l border-slate-200 dark:border-slate-700 text-purple-600 dark:text-purple-400">Nubank</th>
                             <th class="py-3 px-3 font-semibold text-right border-l border-slate-200 dark:border-slate-700 bg-amber-50 dark:bg-amber-900/10 text-amber-700 dark:text-amber-500">Valor Manual</th>
-                            <th class="py-3 px-3 font-semibold text-right border-l border-slate-200 dark:border-slate-700 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400">Total (Bancos+Manual)</th>
+                            <th class="py-3 px-3 font-semibold text-right border-l border-slate-200 dark:border-slate-700 bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400">Sangrias / Ajustes (-)</th>
+                            <th class="py-3 px-3 font-semibold text-right border-l border-slate-200 dark:border-slate-700 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400">Total Liquido</th>
                             <th class="py-3 px-3 font-semibold text-right border-l border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-950 text-slate-700 dark:text-slate-400">Fechamento Colibri</th>
                         </tr>
                     </thead>
@@ -244,6 +247,7 @@
                             <td class="py-4 px-3 text-right border-l border-slate-200 dark:border-slate-800 text-teal-700 dark:text-teal-400" id="confPagBankTotal">R$ 0,00</td>
                             <td class="py-4 px-3 text-right border-l border-slate-200 dark:border-slate-800 text-purple-700 dark:text-purple-400" id="confNubankTotal">R$ 0,00</td>
                             <td class="py-4 px-3 text-right border-l border-slate-200 dark:border-slate-800 text-amber-700 dark:text-amber-500" id="confManualTotal">R$ 0,00</td>
+                            <td class="py-4 px-3 text-right border-l border-slate-200 dark:border-slate-800 text-red-600 dark:text-red-400" id="confSangriaTotal">R$ 0,00</td>
                             <td class="py-4 px-3 text-right border-l border-slate-200 dark:border-slate-800 text-emerald-600 dark:text-emerald-400 bg-blue-100/50 dark:bg-blue-900/20 text-base" id="confTotalGeral">R$ 0,00</td>
                             <td class="py-4 px-3 border-l border-slate-200 dark:border-slate-800">
                                 <div class="flex items-center justify-end gap-2">
@@ -555,6 +559,7 @@
                 state = JSON.parse(JSON.stringify(registroEncontrado.detalhado)); 
                 
                 if(!state.manual) state.manual = baseState();
+                if(!state.sangria) state.sangria = baseState();
                 if(!state.colibri) state.colibri = baseState();
 
                 document.getElementById('dadosRecuperadosAlert').classList.remove('hidden');
@@ -597,7 +602,7 @@
             outros: 0, total: 0
         });
 
-        let state = { rede: baseState(), pagbank: baseState(), nubank: baseState(), manual: baseState(), colibri: baseState() };
+        let state = { rede: baseState(), pagbank: baseState(), nubank: baseState(), manual: baseState(), sangria: baseState(), colibri: baseState() };
 
         const categoriasConferencia = [
             { id: 'ai_que_fome', label: 'Ai Que Fome' }, { id: 'alelo', label: 'Alelo' }, { id: 'amex_credito', label: 'Amex Credito' },
@@ -632,6 +637,11 @@
             renderTable(); 
         };
 
+        window.updateSangriaValue = (key, val) => {
+            state.sangria[key] = Math.abs(parseNumberBR(val)); // Garante valor positivo para subtração matemática
+            renderTable(); 
+        };
+
         window.updateColibriValue = (key, val) => {
             state.colibri[key] = parseNumberBR(val);
             renderTable(); 
@@ -640,7 +650,7 @@
         window.igualarTodosColibri = () => {
             categoriasConferencia.forEach(cat => {
                 if (cat.id === 'outros') return;
-                const totalRow = (state.rede[cat.id] || 0) + (state.pagbank[cat.id] || 0) + (state.nubank[cat.id] || 0) + (state.manual[cat.id] || 0);
+                const totalRow = (state.rede[cat.id] || 0) + (state.pagbank[cat.id] || 0) + (state.nubank[cat.id] || 0) + (state.manual[cat.id] || 0) - (state.sangria[cat.id] || 0);
                 state.colibri[cat.id] = totalRow;
             });
             renderTable();
@@ -658,9 +668,9 @@
             const tbodyP = document.getElementById('tableBodyPlanilhas');
             if(tbodyP) tbodyP.innerHTML = '';
             
-            let grandTotalRede = 0, grandTotalPag = 0, grandTotalNu = 0, grandTotalManual = 0, grandTotalColibri = 0;
+            let grandTotalRede = 0, grandTotalPag = 0, grandTotalNu = 0, grandTotalManual = 0, grandTotalSangria = 0, grandTotalColibri = 0;
 
-            state.rede.total = 0; state.pagbank.total = 0; state.nubank.total = 0; state.manual.total = 0; state.colibri.total = 0;
+            state.rede.total = 0; state.pagbank.total = 0; state.nubank.total = 0; state.manual.total = 0; state.sangria.total = 0; state.colibri.total = 0;
 
             groupsP.forEach(group => {
                 let subRede = 0, subPag = 0, subNu = 0;
@@ -691,10 +701,11 @@
 
                 const vRede = state.rede[cat.id] || 0; const vPag = state.pagbank[cat.id] || 0; 
                 const vNu = state.nubank[cat.id] || 0; const vManual = state.manual[cat.id] || 0;
-                const vColibri = state.colibri[cat.id] || 0;
+                const vSangria = state.sangria[cat.id] || 0; const vColibri = state.colibri[cat.id] || 0;
                 
-                const totalRow = vRede + vPag + vNu + vManual;
+                const totalRow = vRede + vPag + vNu + vManual - vSangria; // Subtraindo Sangria/Ajustes do total da linha
                 grandTotalManual += vManual;
+                grandTotalSangria += vSangria;
                 grandTotalColibri += vColibri;
 
                 if(tbodyC) {
@@ -706,6 +717,9 @@
                             <td class="py-1 px-3 text-right border-l border-slate-100 dark:border-slate-800 ${vNu > 0 ? 'text-slate-700 dark:text-slate-300' : 'text-slate-300 dark:text-slate-600'}">${formatBR(vNu)}</td>
                             <td class="py-1 px-1 border-l border-slate-100 dark:border-slate-800 bg-amber-50/50 dark:bg-amber-900/5">
                                 <input type="text" onblur="updateManualValue('${cat.id}', this.value)" class="table-input ${vManual > 0 ? 'has-value' : ''}" value="${vManual > 0 ? formatBR(vManual) : ''}" placeholder="R$ 0,00">
+                            </td>
+                            <td class="py-1 px-1 border-l border-slate-100 dark:border-slate-800 bg-red-50/50 dark:bg-red-900/5">
+                                <input type="text" onblur="updateSangriaValue('${cat.id}', this.value)" class="table-input table-input-red ${vSangria > 0 ? 'has-value' : ''}" value="${vSangria > 0 ? formatBR(vSangria) : ''}" placeholder="R$ 0,00">
                             </td>
                             <td class="py-1 px-3 text-right border-l border-slate-100 dark:border-slate-800 font-bold bg-blue-50/50 dark:bg-blue-900/10 text-blue-700 dark:text-blue-400">${formatBR(totalRow)}</td>
                             <td class="py-1 px-2 border-l border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
@@ -728,10 +742,11 @@
             state.pagbank.total = grandTotalPag; 
             state.nubank.total = grandTotalNu; 
             state.manual.total = grandTotalManual; 
+            state.sangria.total = grandTotalSangria;
             state.colibri.total = grandTotalColibri;
 
             const somaFinalBancos = grandTotalRede + grandTotalPag + grandTotalNu;
-            const somaFinalTudo = somaFinalBancos + grandTotalManual;
+            const somaFinalTudo = somaFinalBancos + grandTotalManual - grandTotalSangria;
 
             const safeSetText = (id, text) => { const el = document.getElementById(id); if (el) el.innerText = text; };
 
@@ -744,6 +759,7 @@
             safeSetText('confPagBankTotal', formatBR(grandTotalPag));
             safeSetText('confNubankTotal', formatBR(grandTotalNu));
             safeSetText('confManualTotal', formatBR(grandTotalManual));
+            safeSetText('confSangriaTotal', formatBR(grandTotalSangria));
             safeSetText('confTotalGeral', formatBR(somaFinalTudo));
             safeSetText('confColibriTotal', formatBR(grandTotalColibri));
             
@@ -937,7 +953,7 @@
 
         window.limparTudo = (showAlert = true) => {
             state.rede = baseState(); state.pagbank = baseState(); state.nubank = baseState(); 
-            state.manual = baseState(); state.colibri = baseState();
+            state.manual = baseState(); state.sangria = baseState(); state.colibri = baseState();
             
             const clearInput = (id) => { const el = document.getElementById(id); if (el) el.value = ''; };
             const clearText = (id, text) => { const el = document.getElementById(id); if (el) el.innerText = text; };
@@ -992,7 +1008,7 @@
                 return;
             }
 
-            const totalGeral = state.rede.total + state.pagbank.total + state.nubank.total + state.manual.total;
+            const totalGeral = state.rede.total + state.pagbank.total + state.nubank.total + state.manual.total - state.sangria.total;
             const totalColibri = state.colibri.total;
             
             const roundedTotalGeral = Math.round(totalGeral * 100);
@@ -1006,6 +1022,11 @@
             
             if(!dateInput || !currentUnit) {
                 window.showToast("Erro: Selecione a data e unidade.", "error");
+                return;
+            }
+
+            if (roundedTotalGeral !== roundedTotalColibri) {
+                window.showToast("Erro: O Fechamento Colibri não bate com o Total Liquido. Corrija para salvar.", "error");
                 return;
             }
 
@@ -1023,7 +1044,7 @@
                     dataAtualizacao: serverTimestamp(),
                     totaisGlobais: { 
                         rede: state.rede.total, pagbank: state.pagbank.total, nubank: state.nubank.total, 
-                        manual: state.manual.total, colibri: state.colibri.total, somaGeral: totalGeral 
+                        manual: state.manual.total, sangria: state.sangria.total, colibri: state.colibri.total, somaGeral: totalGeral 
                     },
                     detalhado: state 
                 };
